@@ -1,0 +1,125 @@
+{% extends "orders/base.html" %}
+{% block title %}{{ table }} — Tandem{% endblock %}
+{% block header_right %}
+<a href="{% url 'billing_detail' order.id %}" class="text-sm bg-amber-100 text-red-900 rounded-lg px-3 py-1 font-medium mr-2">Bill</a>
+<a href="{% url 'waiter_tables' %}" class="text-sm underline opacity-90">Tables</a>
+{% endblock %}
+{% block content %}
+<div class="flex items-baseline justify-between mb-3">
+  <h1 class="text-lg font-semibold">{{ table }}</h1>
+  <span class="text-stone-500 text-sm">Order #{{ order.id }}</span>
+</div>
+
+<details class="bg-white rounded-xl shadow mb-4 {% if order.customer_phone %}open{% endif %}">
+  <summary class="px-4 py-3 text-sm font-medium text-stone-600 cursor-pointer select-none">
+    Add customer details (optional)
+    {% if order.customer_phone %}
+      <span class="text-stone-400 font-normal">— {{ order.customer_name|default:"Guest" }} · {{ order.customer_phone }}</span>
+    {% endif %}
+  </summary>
+  <form method="post" action="{% url 'set_customer' order.id %}" class="px-4 pb-4 space-y-3 border-t border-stone-100 pt-3">
+    {% csrf_token %}
+    <input type="text" name="customer_name" value="{{ order.customer_name }}" placeholder="Name"
+           class="w-full border-2 border-stone-300 rounded-xl px-3 py-2 text-sm focus:border-red-800 outline-none">
+    <input type="tel" name="customer_phone" value="{{ order.customer_phone }}" placeholder="Phone (10 digits)"
+           inputmode="numeric" maxlength="15"
+           class="w-full border-2 border-stone-300 rounded-xl px-3 py-2 text-sm focus:border-red-800 outline-none">
+    <label class="flex items-start gap-2 text-xs text-stone-600">
+      <input type="checkbox" name="marketing_opt_in" class="mt-0.5" {% if order.marketing_opt_in %}checked{% endif %}>
+      <span>Share number for offers / thank-you SMS (optional)</span>
+    </label>
+    <button type="submit" class="w-full bg-stone-800 text-white text-sm font-medium rounded-xl py-2.5">
+      Save customer
+    </button>
+  </form>
+</details>
+
+<div class="bg-white rounded-xl shadow mb-4 divide-y divide-stone-100">
+  <div class="px-4 py-2 text-sm font-medium text-stone-500">Current order</div>
+  {% for item in order.items.all %}
+  <div class="px-4 py-3 flex items-center justify-between gap-2 text-sm">
+    <div class="min-w-0 flex-1">
+      <div class="font-medium truncate">{{ item.menu_item.name }}</div>
+      <div class="text-stone-500 text-xs">₹{{ item.line_total }}{% if item.status == 'ready' %} · ready{% endif %}</div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <form method="post" action="{% url 'remove_item' order.id item.id %}">
+        {% csrf_token %}
+        <button type="submit" aria-label="Remove one"
+                class="w-9 h-9 rounded-lg bg-stone-200 text-stone-800 text-lg font-semibold active:bg-stone-300">−</button>
+      </form>
+      <span class="w-6 text-center font-semibold">{{ item.quantity }}</span>
+      <form method="post" action="{% url 'add_item' order.id item.menu_item.id %}">
+        {% csrf_token %}
+        <button type="submit" aria-label="Add one"
+                class="w-9 h-9 rounded-lg bg-red-900 text-amber-50 text-lg font-semibold active:bg-red-950">+</button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <div class="px-4 py-3 text-sm text-stone-400">No items yet — add from below</div>
+  {% endfor %}
+  {% if order.items.all %}
+  <div class="px-4 py-3 flex justify-between font-semibold">
+    <span>Total</span>
+    <span>₹{{ order.total_amount }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="sticky top-[3.25rem] z-[5] -mx-3 px-3 py-2 bg-stone-100/95 backdrop-blur-sm mb-2">
+  <label for="menu-search" class="sr-only">Search menu</label>
+  <input id="menu-search" type="search" inputmode="search" autocomplete="off"
+         placeholder="Search menu…"
+         class="w-full border-2 border-stone-300 rounded-xl px-4 py-2.5 text-base bg-white
+                focus:border-red-800 outline-none shadow-sm">
+  <p id="menu-search-empty" class="hidden text-sm text-stone-500 mt-2 px-1">No items match.</p>
+</div>
+
+<div id="menu-catalog">
+{% for category, items in items_by_category.items %}
+<section class="menu-category" data-category="{{ category|lower }}">
+  <h2 class="menu-category-heading text-sm font-semibold text-stone-500 mt-4 mb-2">{{ category }}</h2>
+  <div class="grid grid-cols-2 gap-2">
+    {% for item in items %}
+    <form method="post" action="{% url 'add_item' order.id item.id %}"
+          class="menu-item" data-name="{{ item.name|lower }}">
+      {% csrf_token %}
+      <button type="submit" class="w-full bg-white rounded-lg shadow px-3 py-3 text-left active:bg-stone-50">
+        <div class="font-medium text-sm">{{ item.name }}</div>
+        <div class="text-stone-500 text-xs">₹{{ item.price }}</div>
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+</section>
+{% endfor %}
+</div>
+
+<script>
+(function () {
+  const input = document.getElementById('menu-search');
+  const empty = document.getElementById('menu-search-empty');
+  if (!input) return;
+
+  function filterMenu() {
+    const q = (input.value || '').trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#menu-catalog .menu-category').forEach(function (section) {
+      let sectionVisible = false;
+      section.querySelectorAll('.menu-item').forEach(function (el) {
+        const match = !q || (el.dataset.name || '').indexOf(q) !== -1;
+        el.classList.toggle('hidden', !match);
+        if (match) sectionVisible = true;
+      });
+      section.classList.toggle('hidden', !sectionVisible);
+      if (sectionVisible) anyVisible = true;
+    });
+    empty.classList.toggle('hidden', anyVisible || !q);
+  }
+
+  input.addEventListener('input', filterMenu);
+  input.addEventListener('search', filterMenu);
+})();
+</script>
+{% endblock %}

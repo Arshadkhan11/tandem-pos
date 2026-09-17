@@ -1,0 +1,28 @@
+[Unit]
+Description=Tandem Django (gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=tandem
+Group=tandem
+RuntimeDirectory=tandem
+WorkingDirectory=/opt/tandem
+EnvironmentFile=/opt/tandem/.env
+ExecStart=/opt/tandem/venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/run/tandem/gunicorn.sock \
+    --umask 007 \
+    --access-logfile - \
+    --error-logfile - \
+    tandem.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+NoNewPrivileges=true
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

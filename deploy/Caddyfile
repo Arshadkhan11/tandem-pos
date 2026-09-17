@@ -1,0 +1,14 @@
+# Caddy reverse proxy for Tandem POS
+# Install: copy to /etc/caddy/Caddyfile (or import), then systemctl reload caddy
+# Automatic HTTPS via Let's Encrypt (DNS A/AAAA for app.tandemretreat.com → this VPS)
+
+app.tandemretreat.com {
+	encode gzip
+
+	reverse_proxy unix//run/tandem/gunicorn.sock {
+		# Ensure Django sees HTTPS (SECURE_PROXY_SSL_HEADER)
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-For {remote_host}
+		header_up Host {host}
+	}
+}

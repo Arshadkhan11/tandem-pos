@@ -1,0 +1,10 @@
+[Unit]
+Description=Tandem SQLite daily backup
+After=network.target
+
+[Service]
+Type=oneshot
+User=tandem
+Group=tandem
+WorkingDirectory=/opt/tandem
+ExecStart=/opt/tandem/deploy/backup_db.sh

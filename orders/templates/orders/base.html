@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>{% block title %}Tandem{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+<style>
+  @font-face {
+    font-family: 'Cinzel';
+    src: url("{% static 'fonts/Cinzel-Regular.ttf' %}") format('truetype');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'EB Garamond';
+    src: url("{% static 'fonts/EBGaramond-Regular.ttf' %}") format('truetype');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Cormorant SC';
+    src: url("{% static 'fonts/CormorantSC-Medium.ttf' %}") format('truetype');
+    font-weight: 500;
+    font-display: swap;
+  }
+  .font-brand { font-family: 'Cinzel', serif; }
+  .font-serif-brand { font-family: 'EB Garamond', 'Cormorant SC', Georgia, serif; }
+</style>
+<script>
+  document.addEventListener('htmx:configRequest', (event) => {
+    function getCookie(name) {
+      const match = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return match ? match.pop() : '';
+    }
+    event.detail.headers['X-CSRFToken'] = getCookie('csrftoken');
+  });
+  // Prevent double-submit on slow connections (Add item / Close bill / etc.)
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    if (form.dataset.submitting === '1') {
+      e.preventDefault();
+      return;
+    }
+    form.dataset.submitting = '1';
+    form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach(function (btn) {
+      btn.disabled = true;
+    });
+  }, true);
+</script>
+</head>
+<body class="bg-stone-100 min-h-screen text-stone-900 flex flex-col">
+  <header class="bg-red-900 text-amber-50 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
+    {% block header_brand %}
+    <a href="/" class="flex items-center" aria-label="Tandem">
+      <img src="{% static 'logo-mark.png' %}" alt="Tandem"
+           class="h-9 w-auto object-contain">
+    </a>
+    {% endblock %}
+    <div class="flex items-center gap-3 {% if not user.is_authenticated %}ml-auto{% endif %}">
+      {% block header_right %}{% endblock %}
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'role_logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="text-xs underline opacity-80">Logout</button>
+      </form>
+      {% endif %}
+    </div>
+  </header>
+  <main class="flex-1 p-3 max-w-3xl mx-auto w-full">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="bg-red-100 text-red-800 rounded-lg px-4 py-2 mb-3 text-sm">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="mt-auto bg-red-900 text-[#EBD2A1] border-t border-[#EBD2A1]/30">
+    <div class="max-w-3xl mx-auto px-3 py-1.5 flex flex-col items-center gap-0.5
+                sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-0 sm:gap-y-0 text-center leading-tight">
+      <span class="font-brand text-[10px] sm:text-[11px] tracking-[0.22em] uppercase">
+        Gather. Dine. Celebrate.
+      </span>
+      <span class="hidden sm:inline mx-2 text-[#EBD2A1]/35 select-none" aria-hidden="true">·</span>
+      <span class="font-serif-brand text-[11px] italic text-[#F5E8C8]">
+        More than a meal. A destination.
+      </span>
+      <span class="hidden sm:inline mx-2 text-[#EBD2A1]/35 select-none" aria-hidden="true">·</span>
+      <span class="font-serif-brand text-[10px] text-[#EBD2A1]/70 tracking-wide">
+        Version {{ app_version }}
+        <span class="mx-1.5 text-[#EBD2A1]/35" aria-hidden="true">·</span>
+        {{ app_credit }}
+      </span>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,198 @@
+{% extends "orders/base.html" %}
+{% block title %}Admin — Tandem{% endblock %}
+{% block header_right %}<span class="text-sm opacity-80">{{ staff_name|default:"Admin" }}</span>{% endblock %}
+{% block content %}
+<h1 class="text-xl font-semibold text-stone-800 mb-1">Sales dashboard</h1>
+<p class="text-stone-400 text-sm mb-4">App admin view — separate from /django-admin/</p>
+
+{# Date range #}
+<form method="get" action="{% url 'admin_summary' %}" class="bg-white rounded-xl shadow p-4 mb-4 space-y-3">
+  <div class="flex flex-wrap gap-2">
+    <button type="submit" name="range" value="today"
+            class="text-sm rounded-lg px-3 py-1.5 {% if range_key == 'today' %}bg-red-900 text-amber-50{% else %}bg-stone-100 text-stone-700{% endif %}">Today</button>
+    <button type="submit" name="range" value="7d"
+            class="text-sm rounded-lg px-3 py-1.5 {% if range_key == '7d' %}bg-red-900 text-amber-50{% else %}bg-stone-100 text-stone-700{% endif %}">Last 7 days</button>
+    <button type="submit" name="range" value="30d"
+            class="text-sm rounded-lg px-3 py-1.5 {% if range_key == '30d' %}bg-red-900 text-amber-50{% else %}bg-stone-100 text-stone-700{% endif %}">Last 30 days</button>
+    <button type="submit" name="range" value="all"
+            class="text-sm rounded-lg px-3 py-1.5 {% if range_key == 'all' %}bg-red-900 text-amber-50{% else %}bg-stone-100 text-stone-700{% endif %}">All time</button>
+  </div>
+  <div class="flex flex-col sm:flex-row sm:items-end gap-3">
+    <div class="flex-1">
+      <label class="block text-stone-500 text-xs mb-1">From</label>
+      <input type="date" name="from" value="{{ from_str }}"
+             class="w-full border-2 border-stone-300 rounded-xl px-3 py-2 text-sm focus:border-red-800 outline-none">
+    </div>
+    <div class="flex-1">
+      <label class="block text-stone-500 text-xs mb-1">To</label>
+      <input type="date" name="to" value="{{ to_str }}"
+             class="w-full border-2 border-stone-300 rounded-xl px-3 py-2 text-sm focus:border-red-800 outline-none">
+    </div>
+    <button type="submit" name="range" value="custom"
+            class="bg-stone-800 text-white text-sm font-medium rounded-xl px-4 py-2.5">Apply custom</button>
+    <a href="{% url 'admin_export_customers_csv' %}?{{ export_query }}"
+       class="inline-flex justify-center bg-red-900 text-amber-50 font-medium rounded-xl px-4 py-2.5 text-sm">
+      Customers CSV
+    </a>
+    <a href="{% url 'admin_export_csv' %}?{{ export_query }}"
+       class="inline-flex justify-center bg-stone-700 text-white font-medium rounded-xl px-4 py-2.5 text-sm">
+      Item sales CSV
+    </a>
+  </div>
+  <p class="text-stone-400 text-xs">Customers CSV = one row per bill (name, phone, items, total paid, waiter). Item sales CSV = one row per dish line.</p>
+</form>
+
+{# KPI tiles #}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">Revenue (range)</div>
+    <div class="text-2xl font-semibold mt-1">₹{{ range_revenue }}</div>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">Orders (range)</div>
+    <div class="text-2xl font-semibold mt-1">{{ range_order_count }}</div>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">Avg order value</div>
+    <div class="text-2xl font-semibold mt-1">₹{{ range_aov }}</div>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">All-time revenue</div>
+    <div class="text-2xl font-semibold mt-1">₹{{ all_time_revenue }}</div>
+  </div>
+</div>
+
+{# Kitchen speed #}
+<div class="bg-white rounded-xl shadow p-4 mb-5">
+  <h2 class="text-sm font-semibold text-stone-600 mb-2">Kitchen speed (range)</h2>
+  {% if kitchen.sample_size %}
+  <div class="flex flex-wrap gap-6 text-sm">
+    <div><span class="text-stone-500">Avg time to ready</span>
+      <div class="text-lg font-semibold">{{ kitchen.avg_minutes }} min</div></div>
+    <div><span class="text-stone-500">Late (&gt;10 min)</span>
+      <div class="text-lg font-semibold">{{ kitchen.late_pct }}%</div></div>
+    <div><span class="text-stone-500">Sample</span>
+      <div class="text-lg font-semibold">{{ kitchen.sample_size }} items</div></div>
+  </div>
+  {% else %}
+  <p class="text-stone-400 text-sm">No ready items with timestamps in this range yet.</p>
+  {% endif %}
+</div>
+
+{# Charts #}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-5">
+  <div class="bg-white rounded-xl shadow p-4">
+    <h2 class="text-sm font-semibold text-stone-600 mb-3">Revenue trend (last 14 days)</h2>
+    <canvas id="chart-trend" height="180"></canvas>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <h2 class="text-sm font-semibold text-stone-600 mb-3">Top items by revenue (range)</h2>
+    <canvas id="chart-top" height="180"></canvas>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4 lg:col-span-2">
+    <h2 class="text-sm font-semibold text-stone-600 mb-3">Category revenue (range)</h2>
+    <div class="max-w-md mx-auto">
+      <canvas id="chart-cats" height="200"></canvas>
+    </div>
+  </div>
+</div>
+
+{{ chart_payload|json_script:"dashboard-charts" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const data = JSON.parse(document.getElementById('dashboard-charts').textContent);
+  const red = '#7f1d1d';
+  const amber = '#fbbf24';
+  const stone = '#a8a29e';
+
+  new Chart(document.getElementById('chart-trend'), {
+    type: 'bar',
+    data: {
+      labels: data.trend.labels,
+      datasets: [{ label: '₹ revenue', data: data.trend.values, backgroundColor: red }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+
+  new Chart(document.getElementById('chart-top'), {
+    type: 'bar',
+    data: {
+      labels: data.topItems.labels,
+      datasets: [{
+        label: '₹ revenue',
+        data: data.topItems.revenue,
+        backgroundColor: amber,
+        qty: data.topItems.qty
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: function (ctx) {
+              const q = ctx.dataset.qty[ctx.dataIndex];
+              return q != null ? ('Qty sold: ' + q) : '';
+            }
+          }
+        }
+      },
+      scales: { x: { beginAtZero: true } }
+    }
+  });
+
+  new Chart(document.getElementById('chart-cats'), {
+    type: 'doughnut',
+    data: {
+      labels: data.categories.labels,
+      datasets: [{
+        data: data.categories.values,
+        backgroundColor: [red, amber, stone, '#b91c1c', '#d6d3d1', '#44403c', '#fef3c7', '#78716c']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'right' } }
+    }
+  });
+})();
+</script>
+
+<h2 class="text-lg font-semibold mt-2 mb-2 text-stone-600">Recent customers (range, with phone)</h2>
+<div class="bg-white rounded-xl shadow divide-y divide-stone-100 mb-4">
+  {% for o in recent_customers %}
+  <div class="flex justify-between items-center px-4 py-3 text-sm">
+    <div>
+      <div class="font-medium">{{ o.customer_name|default:"Guest" }} · {{ o.customer_phone }}</div>
+      <div class="text-stone-400 text-xs">{{ o.table }} · Order #{{ o.id }}{% if o.marketing_opt_in %} · SMS opt-in{% endif %}</div>
+    </div>
+    <div class="text-stone-500 text-xs">₹{{ o.total_amount }}</div>
+  </div>
+  {% empty %}
+  <div class="text-stone-400 text-center py-6 text-sm">No customer phones in this range</div>
+  {% endfor %}
+</div>
+
+<h2 class="text-lg font-semibold mt-2 mb-2 text-stone-600">Item-wise sales (range)</h2>
+<div class="bg-white rounded-xl shadow divide-y divide-stone-100">
+  {% for row in item_sales %}
+  <div class="flex justify-between items-center px-4 py-3">
+    <div>
+      <div class="font-medium">{{ row.menu_item__name }}</div>
+      <div class="text-stone-400 text-xs">{{ row.qty }} sold</div>
+    </div>
+    <div class="text-stone-600 font-medium">₹{{ row.revenue }}</div>
+  </div>
+  {% empty %}
+  <div class="text-stone-400 text-center py-6">No closed orders in this range</div>
+  {% endfor %}
+</div>
+{% endblock %}

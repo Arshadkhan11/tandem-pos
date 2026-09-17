@@ -1,0 +1,26 @@
+{% extends "orders/base.html" %}
+{% load static %}
+{% block title %}{{ role|title }} login — Tandem{% endblock %}
+{# One image logo only — header brand suppressed on login. #}
+{% block header_brand %}{% endblock %}
+{% block content %}
+<div class="flex flex-col items-center justify-center pt-8">
+  <img src="{% static 'logo-mark.png' %}" alt="Tandem"
+       class="h-16 w-auto max-w-[260px] mb-6 object-contain">
+  <h1 class="text-2xl font-semibold mb-1 capitalize">{{ role }} login</h1>
+  <p class="text-stone-500 mb-6">Enter your username and password</p>
+  <form method="post" class="w-full max-w-xs space-y-3">
+    {% csrf_token %}
+    <input type="text" name="username" autocomplete="username" autofocus
+           placeholder="Username"
+           class="w-full border-2 border-stone-300 rounded-xl px-4 py-3 text-lg focus:border-red-800 outline-none">
+    <input type="password" name="password" autocomplete="current-password"
+           placeholder="Password"
+           class="w-full border-2 border-stone-300 rounded-xl px-4 py-3 text-lg focus:border-red-800 outline-none">
+    <button type="submit"
+            class="w-full bg-red-900 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-red-950">
+      Sign in
+    </button>
+  </form>
+</div>
+{% endblock %}

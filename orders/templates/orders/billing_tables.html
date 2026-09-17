@@ -1,0 +1,16 @@
+{% extends "orders/base.html" %}
+{% block title %}Billing — Tandem{% endblock %}
+{% block header_right %}<a href="{% url 'waiter_tables' %}" class="text-sm underline opacity-90">Tables</a>{% endblock %}
+{% block content %}
+<h1 class="text-lg font-semibold mb-3 text-stone-600">Open orders</h1>
+<div class="space-y-2">
+  {% for order in open_orders %}
+  <a href="{% url 'billing_detail' order.id %}" class="block bg-white rounded-xl shadow px-4 py-3 flex justify-between items-center">
+    <span class="font-medium">{{ order.table }}</span>
+    <span class="text-stone-500 text-sm">₹{{ order.total_amount }}</span>
+  </a>
+  {% empty %}
+  <div class="text-stone-400 text-center pt-10">No open orders</div>
+  {% endfor %}
+</div>
+{% endblock %}

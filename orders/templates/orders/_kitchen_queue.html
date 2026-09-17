@@ -1,0 +1,30 @@
+<div id="queue"
+     data-ticket-ids="{% for item in items %}{{ item.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
+     hx-get="{% url 'kitchen_panel_partial' %}"
+     hx-trigger="every 3s"
+     hx-swap="outerHTML"
+     class="space-y-2">
+  {% for item in items %}
+  <div class="rounded-xl shadow px-4 py-3 flex justify-between items-center
+              {% if item.is_late %} bg-red-600 text-white {% else %} bg-white text-stone-900 {% endif %}">
+    <div>
+      <div class="font-semibold">{{ item.order.table }} — {{ item.quantity }} × {{ item.menu_item.name }}</div>
+      <div class="text-xs {% if item.is_late %} text-red-100 {% else %} text-stone-500 {% endif %}">
+        waiting {{ item.age_minutes }} min
+      </div>
+    </div>
+    <form method="post" action="{% url 'mark_ready' item.id %}" class="shrink-0">
+      {% csrf_token %}
+      <button type="submit"
+              hx-post="{% url 'mark_ready' item.id %}"
+              hx-target="#queue"
+              hx-swap="outerHTML"
+              class="{% if item.is_late %} bg-white text-red-700 {% else %} bg-green-700 text-white {% endif %} text-sm font-medium rounded-lg px-3 py-2">
+        Done
+      </button>
+    </form>
+  </div>
+  {% empty %}
+  <div class="text-stone-400 text-center pt-10">Queue is empty</div>
+  {% endfor %}
+</div>

@@ -1,0 +1,57 @@
+{% extends "orders/base.html" %}
+{% block title %}Kitchen — Tandem{% endblock %}
+{% block header_right %}<span class="text-sm opacity-80">{{ staff_name|default:"Chef" }}</span>{% endblock %}
+{% block content %}
+{% include "orders/_kitchen_queue.html" %}
+
+<script>
+(function () {
+  let knownIds = null; // null until first snapshot — avoid beep on page load
+
+  function playAlert() {
+    try {
+      if (navigator.vibrate) navigator.vibrate([200, 80, 200]);
+    } catch (e) {}
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 880;
+      gain.gain.value = 0.08;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      setTimeout(function () {
+        osc.frequency.value = 1175;
+      }, 120);
+      setTimeout(function () {
+        osc.stop();
+        ctx.close();
+      }, 280);
+    } catch (e) {}
+  }
+
+  function checkQueue(el) {
+    if (!el) return;
+    const ids = (el.dataset.ticketIds || "").split(",").filter(Boolean);
+    if (knownIds === null) {
+      knownIds = new Set(ids);
+      return;
+    }
+    const hasNew = ids.some(function (id) { return !knownIds.has(id); });
+    knownIds = new Set(ids);
+    if (hasNew) playAlert();
+  }
+
+  document.body.addEventListener("htmx:afterSwap", function (evt) {
+    if (evt.detail && evt.detail.target && evt.detail.target.id === "queue") {
+      checkQueue(evt.detail.target);
+    }
+  });
+
+  // Initial snapshot
+  checkQueue(document.getElementById("queue"));
+})();
+</script>
+{% endblock %}

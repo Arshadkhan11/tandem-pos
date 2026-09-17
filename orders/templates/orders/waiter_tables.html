@@ -1,0 +1,23 @@
+{% extends "orders/base.html" %}
+{% block title %}Tables — Tandem{% endblock %}
+{% block header_right %}<span class="text-sm opacity-80">{{ staff_name|default:"Waiter" }}</span>{% endblock %}
+{% block content %}
+<h1 class="text-lg font-semibold mb-3 text-stone-600">Select a table</h1>
+<p class="text-xs text-stone-400 mb-3">Amber = yours · Grey = locked by another waiter · White = free</p>
+<div class="grid grid-cols-3 gap-3">
+  {% for table in tables %}
+  <a href="{% url 'waiter_order' table.id %}"
+     class="aspect-square rounded-xl flex flex-col items-center justify-center text-lg font-semibold shadow
+            {% if table.lock_state == 'mine' %} bg-amber-200 text-amber-900
+            {% elif table.lock_state == 'theirs' %} bg-stone-300 text-stone-600
+            {% else %} bg-white text-stone-700 {% endif %}">
+    {{ table }}
+    {% if table.lock_state == 'mine' %}
+      <span class="text-xs font-normal mt-1">your order</span>
+    {% elif table.lock_state == 'theirs' %}
+      <span class="text-xs font-normal mt-1">Locked · {{ table.lock_waiter_name }}</span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}
