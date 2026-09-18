@@ -1,6 +1,8 @@
+from django import forms
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import Group, User
 from django.utils.translation import gettext_lazy as _
 
@@ -8,10 +10,34 @@ from .models import StaffProfile, Table, MenuItem, Order, OrderItem, RestaurantS
 from .upi_qr import decode_upi_from_image
 
 
+class StaffUserCreationForm(UserCreationForm):
+    """One-step hire: username, password, Tandem role, and display name."""
+
+    role = forms.ChoiceField(
+        choices=StaffProfile.ROLE_CHOICES,
+        initial=StaffProfile.ROLE_WAITER,
+        label="Tandem role",
+        help_text=(
+            "Waiter / Chef → app login only. "
+            "Admin → app login + Django admin (/django-admin/)."
+        ),
+    )
+    display_name = forms.CharField(
+        max_length=50,
+        label="Display name",
+        help_text="Shown on the floor (tickets, locks, kitchen).",
+    )
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("username",)
+
+
 class StaffProfileInline(admin.StackedInline):
     model = StaffProfile
     can_delete = False
     max_num = 1
+    extra = 0
     verbose_name_plural = "Tandem role"
     fields = ("role", "display_name")
 
@@ -19,23 +45,28 @@ class StaffProfileInline(admin.StackedInline):
 class StaffUserAdmin(DjangoUserAdmin):
     """Manage waiters/chefs/admins in one place. Role lives on StaffProfile."""
 
+    add_form = StaffUserCreationForm
     inlines = [StaffProfileInline]
     list_display = ["username", "get_role", "get_display_name", "is_active", "is_staff"]
     list_filter = ["staff__role", "is_active"]
     search_fields = ["username", "staff__display_name"]
+    # Derived from Tandem role — not manually toggled (that looked like “not saving”).
+    readonly_fields = ("is_staff", "is_superuser", "last_login", "date_joined")
 
     # Drop Groups — Tandem uses StaffProfile.role, not auth groups.
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (_("Personal info"), {"fields": ("first_name", "last_name", "email")}),
         (
-            _("Permissions"),
+            _("Tandem access"),
             {
                 "fields": ("is_active", "is_staff", "is_superuser"),
                 "description": (
-                    "Uncheck Active to offboard someone (blocks login; keeps history). "
-                    "is_staff / is_superuser are auto-synced from Tandem role on save: "
-                    "only role=Admin gets Django admin access."
+                    "Uncheck Active to offboard (blocks login; keeps history). "
+                    "Staff status / superuser are set automatically from Tandem role: "
+                    "only Admin gets /django-admin/ access. "
+                    "Waiters and chefs log in at /login/waiter/ and /login/chef/ — "
+                    "they do not need Staff status."
                 ),
             },
         ),
@@ -46,14 +77,27 @@ class StaffUserAdmin(DjangoUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("username", "password1", "password2"),
+                "fields": (
+                    "username",
+                    "password1",
+                    "password2",
+                    "role",
+                    "display_name",
+                ),
                 "description": (
-                    "Create the account first, then open it again to set "
-                    "Tandem role + display name (inline appears after the first save)."
+                    "Create the account and Tandem role in one step. "
+                    "Choose Admin only if they should manage users/settings "
+                    "in Django admin."
                 ),
             },
         ),
     )
+
+    def get_inline_instances(self, request, obj=None):
+        # Role is on the add form; inline is for edits only.
+        if obj is None:
+            return []
+        return super().get_inline_instances(request, obj)
 
     @admin.display(description="Role", ordering="staff__role")
     def get_role(self, obj):
@@ -68,6 +112,17 @@ class StaffUserAdmin(DjangoUserAdmin):
             return obj.staff.display_name
         except StaffProfile.DoesNotExist:
             return "—"
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if not change and isinstance(form, StaffUserCreationForm):
+            role = form.cleaned_data["role"]
+            display_name = form.cleaned_data["display_name"].strip()
+            StaffProfile.objects.update_or_create(
+                user=obj,
+                defaults={"role": role, "display_name": display_name},
+            )
+            self._sync_django_admin_flags(obj)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
@@ -99,6 +154,10 @@ class StaffProfileAdmin(admin.ModelAdmin):
     list_display = ["display_name", "role", "user"]
     list_filter = ["role"]
     search_fields = ["display_name", "user__username"]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        StaffUserAdmin._sync_django_admin_flags(obj.user)
 
 
 @admin.register(Table)

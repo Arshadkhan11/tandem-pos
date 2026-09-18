@@ -201,6 +201,37 @@ class BillingUpiTests(TestCase):
             1,
         )
 
+    def test_zero_bill_close_deletes_order_not_counted(self):
+        empty = Order.objects.create(
+            table=Table.objects.create(number=22),
+            status=Order.STATUS_OPEN,
+            waiter=self.waiter,
+        )
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.post(reverse("close_order", args=[empty.id]))
+        self.assertEqual(r.status_code, 302)
+        self.assertFalse(Order.objects.filter(pk=empty.id).exists())
+        self.assertEqual(
+            Order.objects.filter(status=Order.STATUS_CLOSED).count(),
+            0,
+        )
+
+    def test_remove_last_item_frees_table(self):
+        line = self.order.items.get()
+        # qty 3 → remove down to delete
+        c = Client()
+        c.force_login(self.waiter)
+        c.post(reverse("remove_item", args=[self.order.id, line.id]))
+        c.post(reverse("remove_item", args=[self.order.id, line.id]))
+        r = c.post(reverse("remove_item", args=[self.order.id, line.id]))
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse("waiter_tables"))
+        self.assertFalse(Order.objects.filter(pk=self.order.id).exists())
+        self.assertFalse(
+            Order.objects.filter(table=self.table, status=Order.STATUS_OPEN).exists()
+        )
+
 
 @override_settings(**TEST_SETTINGS)
 class CsvExportTests(TestCase):
@@ -296,6 +327,17 @@ class AdminDashboardRangeTests(TestCase):
         rev, count = self._kpis("?range=today")
         self.assertEqual(rev, Decimal("100.00"))
         self.assertEqual(count, 1)
+
+    def test_empty_closed_orders_excluded_from_kpis(self):
+        Order.objects.create(
+            table=self.table,
+            status=Order.STATUS_CLOSED,
+            waiter=self.waiter,
+            closed_at=timezone.now(),
+        )
+        rev, count = self._kpis("?range=today")
+        self.assertEqual(rev, Decimal("100.00"))
+        self.assertEqual(count, 1)  # empty shell ignored
 
     def test_7d_range(self):
         rev, count = self._kpis("?range=7d")
@@ -511,6 +553,61 @@ class StaffAdminSyncAndLoginTests(TestCase):
         )
         StaffUserAdmin._sync_django_admin_flags(user)
         user.refresh_from_db()
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
+
+    def test_create_user_form_sets_role_in_one_step(self):
+        from django.contrib.admin.sites import AdminSite
+        from django.test import RequestFactory
+
+        from orders.admin import StaffUserAdmin, StaffUserCreationForm
+
+        form = StaffUserCreationForm(
+            data={
+                "username": "floor_waiter",
+                "password1": "pass12345!",
+                "password2": "pass12345!",
+                "role": StaffProfile.ROLE_WAITER,
+                "display_name": "Floor Waiter",
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        request = RequestFactory().post("/django-admin/auth/user/add/")
+        request.user = _make_admin("hire_admin")
+        StaffUserAdmin(User, AdminSite()).save_model(request, user, form, change=False)
+
+        user.refresh_from_db()
+        self.assertEqual(user.staff.role, StaffProfile.ROLE_WAITER)
+        self.assertEqual(user.staff.display_name, "Floor Waiter")
+        self.assertFalse(user.is_staff)
+        self.assertFalse(user.is_superuser)
+
+    def test_create_admin_form_grants_django_admin(self):
+        from django.contrib.admin.sites import AdminSite
+        from django.test import RequestFactory
+
+        from orders.admin import StaffUserAdmin, StaffUserCreationForm
+
+        form = StaffUserCreationForm(
+            data={
+                "username": "floor_admin",
+                "password1": "pass12345!",
+                "password2": "pass12345!",
+                "role": StaffProfile.ROLE_ADMIN,
+                "display_name": "Floor Admin",
+            }
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        user = form.save()
+
+        request = RequestFactory().post("/django-admin/auth/user/add/")
+        request.user = _make_admin("hire_admin2")
+        StaffUserAdmin(User, AdminSite()).save_model(request, user, form, change=False)
+
+        user.refresh_from_db()
+        self.assertEqual(user.staff.role, StaffProfile.ROLE_ADMIN)
         self.assertTrue(user.is_staff)
         self.assertTrue(user.is_superuser)
 

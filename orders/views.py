@@ -264,6 +264,14 @@ def remove_item(request, order_id, item_id):
         line.save(update_fields=["quantity"])
     else:
         line.delete()
+
+    # Empty cart → free the table (no ₹0 "sale" left hanging)
+    if not order.items.exists():
+        table = order.table
+        order.delete()
+        messages.info(request, f"{table} freed — cart was empty.")
+        return redirect("waiter_tables")
+
     return redirect("waiter_order", table_id=order.table_id)
 
 
@@ -398,6 +406,14 @@ def close_order(request, order_id):
         messages.info(request, "That table was already closed.")
         return redirect("waiter_tables")
 
+    total = order.total_amount()
+    # ₹0 bill = practice / emptied cart — free table, do not count as a sale
+    if total == 0:
+        table = order.table
+        order.delete()
+        messages.info(request, f"{table} freed — no charge (empty bill not counted).")
+        return redirect("waiter_tables")
+
     order.status = Order.STATUS_CLOSED
     order.closed_at = timezone.now()
     order.save(update_fields=["status", "closed_at"])
@@ -406,7 +422,7 @@ def close_order(request, order_id):
     if order.customer_phone and order.marketing_opt_in:
         send_sms_async(order.customer_phone, settings.SMS_THANKYOU)
 
-    messages.success(request, f"{order.table} closed. Total was ₹{order.total_amount()}.")
+    messages.success(request, f"{order.table} closed. Total was ₹{total}.")
     return redirect("waiter_tables")
 
 

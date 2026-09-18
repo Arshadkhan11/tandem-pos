@@ -36,11 +36,18 @@
 
 <form method="post" action="{% url 'close_order' order.id %}">
   {% csrf_token %}
+  {% if total == 0 %}
+  <button class="w-full bg-stone-700 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-stone-800">
+    Free table (no charge)
+  </button>
+  <p class="text-stone-400 text-xs text-center mt-2">Empty bill — table frees and is not counted as a sale.</p>
+  {% else %}
   <button class="w-full bg-red-900 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-red-950">
     Payment received — close table
   </button>
+  {% if order.customer_phone and order.marketing_opt_in %}
+  <p class="text-stone-400 text-xs text-center mt-2">Closing will also try a thank-you SMS (best-effort).</p>
+  {% endif %}
+  {% endif %}
 </form>
-{% if order.customer_phone and order.marketing_opt_in %}
-<p class="text-stone-400 text-xs text-center mt-2">Closing will also try a thank-you SMS (best-effort).</p>
-{% endif %}
 {% endblock %}

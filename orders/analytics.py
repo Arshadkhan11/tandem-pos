@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.db.models import F, Sum
+from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
@@ -46,7 +46,12 @@ def parse_dashboard_range(get):
 
 
 def closed_orders_qs(start_date=None, end_date=None):
-    qs = Order.objects.filter(status=Order.STATUS_CLOSED)
+    """Closed bills with at least one line item (excludes empty ₹0 practice closes)."""
+    qs = (
+        Order.objects.filter(status=Order.STATUS_CLOSED)
+        .annotate(_line_count=Count("items"))
+        .filter(_line_count__gt=0)
+    )
     if start_date is not None:
         qs = qs.filter(closed_at__date__gte=start_date)
     if end_date is not None:
@@ -164,5 +169,5 @@ def range_kpis(start_date=None, end_date=None):
 
 
 def all_time_revenue():
-    orders = Order.objects.filter(status=Order.STATUS_CLOSED)
+    orders = closed_orders_qs()
     return sum((o.total_amount() for o in orders), Decimal("0"))
