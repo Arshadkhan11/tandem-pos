@@ -9,6 +9,11 @@
               {% if item.is_late %} bg-red-600 text-white {% else %} bg-white text-stone-900 {% endif %}">
     <div>
       <div class="font-semibold">{{ item.order.table }} — {{ item.quantity }} × {{ item.menu_item.name }}</div>
+      {% if item.note %}
+      <div class="text-sm font-medium {% if item.is_late %} text-amber-100 {% else %} text-red-800 {% endif %}">
+        {{ item.note }}
+      </div>
+      {% endif %}
       <div class="text-xs {% if item.is_late %} text-red-100 {% else %} text-stone-500 {% endif %}">
         waiting {{ item.age_minutes }} min
       </div>

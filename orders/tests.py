@@ -234,6 +234,58 @@ class BillingUpiTests(TestCase):
 
 
 @override_settings(**TEST_SETTINGS)
+class ItemNoteTests(TestCase):
+    def setUp(self):
+        self.table = Table.objects.create(number=9)
+        self.waiter = _make_waiter("note_waiter")
+        self.chef = User.objects.create_user(username="note_chef", password="x")
+        StaffProfile.objects.create(
+            user=self.chef, role=StaffProfile.ROLE_CHEF, display_name="Note Chef"
+        )
+        self.item = MenuItem.objects.create(
+            name="Chilli Chicken", category="starters_nonveg", price=Decimal("249.00")
+        )
+        self.order = Order.objects.create(
+            table=self.table, status=Order.STATUS_OPEN, waiter=self.waiter
+        )
+
+    def test_different_notes_create_separate_lines(self):
+        c = Client()
+        c.force_login(self.waiter)
+        c.post(
+            reverse("add_item", args=[self.order.id, self.item.id]),
+            {"note": "spicy"},
+        )
+        c.post(
+            reverse("add_item", args=[self.order.id, self.item.id]),
+            {"note": "gravy"},
+        )
+        c.post(
+            reverse("add_item", args=[self.order.id, self.item.id]),
+            {"note": "spicy"},
+        )
+        lines = list(self.order.items.order_by("note"))
+        self.assertEqual(len(lines), 2)
+        by_note = {ln.note: ln.quantity for ln in lines}
+        self.assertEqual(by_note["gravy"], 1)
+        self.assertEqual(by_note["spicy"], 2)
+
+    def test_kitchen_shows_note(self):
+        OrderItem.objects.create(
+            order=self.order,
+            menu_item=self.item,
+            quantity=1,
+            note="less oil, gravy",
+        )
+        c = Client()
+        c.force_login(self.chef)
+        r = c.get(reverse("kitchen_panel"))
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "less oil, gravy")
+        self.assertContains(r, "Chilli Chicken")
+
+
+@override_settings(**TEST_SETTINGS)
 class CsvExportTests(TestCase):
     def setUp(self):
         self.admin = _make_admin()
@@ -272,6 +324,7 @@ class CsvExportTests(TestCase):
         self.assertIn("Soup, Tomato", data)
         self.assertIn('Patel, "Arjun"', data)
         self.assertIn("Csv Waiter", data)
+        self.assertIn("note", header)
 
     def test_customers_csv_escapes_and_includes_total(self):
         c = Client()
@@ -397,15 +450,15 @@ class SeedMenuAndCategoryGroupingTests(TestCase):
         self.table = Table.objects.create(number=10)
         self.waiter = _make_waiter("seed_waiter")
 
-    def test_seed_menu_loads_75_items_across_all_categories(self):
+    def test_seed_menu_loads_77_items_across_all_categories(self):
         from django.core.management import call_command
         from orders.management.commands.seed_menu import ITEMS
 
-        self.assertEqual(len(ITEMS), 75)
+        self.assertEqual(len(ITEMS), 77)
         call_command("seed_menu")
 
         active = MenuItem.objects.filter(is_active=True)
-        self.assertEqual(active.count(), 75)
+        self.assertEqual(active.count(), 77)
         keys = set(active.values_list("category", flat=True))
         expected_keys = {c for c, _ in MenuItem.CATEGORY_CHOICES}
         self.assertEqual(keys, expected_keys)
@@ -415,6 +468,12 @@ class SeedMenuAndCategoryGroupingTests(TestCase):
             "beverage", "rice_noodles_pasta", "ice_cream",
         }
         self.assertFalse(keys & legacy)
+        self.assertTrue(
+            active.filter(name="Water Bottle (Small)", price=10, category="beverages").exists()
+        )
+        self.assertTrue(
+            active.filter(name="Water Bottle (Large)", price=20, category="beverages").exists()
+        )
 
     def test_waiter_order_groups_all_display_categories(self):
         from django.core.management import call_command
@@ -428,7 +487,7 @@ class SeedMenuAndCategoryGroupingTests(TestCase):
         expected_labels = [label for _, label in MenuItem.CATEGORY_CHOICES]
         self.assertEqual(list(by_cat.keys()), expected_labels)
         self.assertEqual(len(by_cat), 12)
-        self.assertEqual(sum(len(v) for v in by_cat.values()), 75)
+        self.assertEqual(sum(len(v) for v in by_cat.values()), 77)
         # No empty / orphaned groups
         self.assertTrue(all(len(items) > 0 for items in by_cat.values()))
         self.assertContains(r, 'id="menu-search"')

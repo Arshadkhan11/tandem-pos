@@ -232,12 +232,19 @@ def add_item(request, order_id, item_id):
         order.save(update_fields=["waiter"])
 
     menu_item = get_object_or_404(MenuItem, pk=item_id)
-    existing = order.items.filter(menu_item=menu_item, status=OrderItem.STATUS_PENDING).first()
+    note = (request.POST.get("note") or "").strip()[:120]
+    existing = order.items.filter(
+        menu_item=menu_item,
+        status=OrderItem.STATUS_PENDING,
+        note=note,
+    ).first()
     if existing:
         existing.quantity += 1
         existing.save(update_fields=["quantity"])
     else:
-        OrderItem.objects.create(order=order, menu_item=menu_item, quantity=1)
+        OrderItem.objects.create(
+            order=order, menu_item=menu_item, quantity=1, note=note
+        )
     return redirect("waiter_order", table_id=order.table_id)
 
 
@@ -497,7 +504,7 @@ def admin_export_csv(request):
     writer = csv.writer(response)
     writer.writerow([
         "order_id", "table", "waiter", "customer_name", "customer_phone",
-        "item_name", "qty", "line_total", "order_total_paid", "closed_at", "marketing_opt_in",
+        "item_name", "note", "qty", "line_total", "order_total_paid", "closed_at", "marketing_opt_in",
     ])
     # Cache order totals to avoid N+1 sum loops
     order_totals = {}
@@ -513,6 +520,7 @@ def admin_export_csv(request):
             order.customer_name,
             order.customer_phone,
             item.menu_item.name,
+            item.note,
             item.quantity,
             item.line_total(),
             order_totals[order.id],
@@ -552,7 +560,11 @@ def admin_export_customers_csv(request):
     ])
     for order in orders:
         items_summary = "; ".join(
-            f"{line.quantity}x {line.menu_item.name}" for line in order.items.all()
+            (
+                f"{line.quantity}x {line.menu_item.name}"
+                + (f" ({line.note})" if line.note else "")
+            )
+            for line in order.items.all()
         )
         closed_at = order.closed_at
         writer.writerow([

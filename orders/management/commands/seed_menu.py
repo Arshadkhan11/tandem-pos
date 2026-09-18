@@ -60,12 +60,14 @@ ITEMS = [
     ("rice_nonveg", "Schezwan Chicken Fried Rice", 225),
     ("rice_nonveg", "White Sauce Pasta (Chicken)", 249),
     ("rice_nonveg", "Pink Sauce Pasta (Chicken)", 249),
-    # beverages
+    # beverages — Refreshers & Soft Drinks
     ("beverages", "Salt Lime Soda", 69),
     ("beverages", "Sweet & Salt Lime Soda", 79),
     ("beverages", "Thums Up", 30),
     ("beverages", "7UP", 30),
     ("beverages", "Red Bull", 199),
+    ("beverages", "Water Bottle (Small)", 10),
+    ("beverages", "Water Bottle (Large)", 20),
     # ice_signature
     ("ice_signature", "Tandem 7th Heaven (Single)", 80),
     ("ice_signature", "Tandem 7th Heaven (Double)", 150),
@@ -102,7 +104,7 @@ class Command(BaseCommand):
     help = "Seed Tandem menu items and tables"
 
     def handle(self, *args, **options):
-        assert len(ITEMS) == 75, f"Expected 75 menu items, got {len(ITEMS)}"
+        assert len(ITEMS) == 77, f"Expected 77 menu items, got {len(ITEMS)}"
         assert all(c in VALID_CATEGORIES for c, _, _ in ITEMS)
 
         # Clear placeholder / stale rows when nothing depends on them yet.

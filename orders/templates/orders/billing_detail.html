@@ -12,7 +12,10 @@
   <div class="divide-y divide-stone-100 my-3">
     {% for item in order.items.all %}
     <div class="py-2 flex justify-between text-sm">
-      <span>{{ item.quantity }} × {{ item.menu_item.name }}</span>
+      <span>
+        {{ item.quantity }} × {{ item.menu_item.name }}
+        {% if item.note %}<span class="block text-xs text-red-800 font-medium">{{ item.note }}</span>{% endif %}
+      </span>
       <span class="text-stone-500">₹{{ item.line_total }}</span>
     </div>
     {% endfor %}

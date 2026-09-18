@@ -175,6 +175,8 @@ class MenuItemAdmin(admin.ModelAdmin):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
+    fields = ("menu_item", "quantity", "note", "status", "added_at", "ready_at")
+    readonly_fields = ("added_at", "ready_at")
 
 
 @admin.register(Order)

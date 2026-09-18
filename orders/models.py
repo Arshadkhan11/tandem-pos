@@ -120,6 +120,12 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField(default=1)
+    note = models.CharField(
+        max_length=120,
+        blank=True,
+        default="",
+        help_text="Kitchen note, e.g. spicy, gravy, less oil",
+    )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
     added_at = models.DateTimeField(default=timezone.now)
     ready_at = models.DateTimeField(null=True, blank=True)
@@ -131,7 +137,8 @@ class OrderItem(models.Model):
         return (timezone.now() - self.added_at).total_seconds()
 
     def __str__(self):
-        return f"{self.quantity} x {self.menu_item.name}"
+        base = f"{self.quantity} x {self.menu_item.name}"
+        return f"{base} ({self.note})" if self.note else base
 
 
 class RestaurantSettings(models.Model):
