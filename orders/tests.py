@@ -189,17 +189,54 @@ class BillingUpiTests(TestCase):
     def test_double_close_is_safe(self):
         c = Client()
         c.force_login(self.waiter)
-        r1 = c.post(reverse("close_order", args=[self.order.id]))
+        r1 = c.post(
+            reverse("close_order", args=[self.order.id]),
+            {"payment_method": "upi"},
+        )
         self.assertEqual(r1.status_code, 302)
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, Order.STATUS_CLOSED)
+        self.assertEqual(self.order.payment_method, Order.PAYMENT_UPI)
 
-        r2 = c.post(reverse("close_order", args=[self.order.id]), follow=True)
+        r2 = c.post(
+            reverse("close_order", args=[self.order.id]),
+            {"payment_method": "cash"},
+            follow=True,
+        )
         self.assertEqual(r2.status_code, 200)
         self.assertEqual(
             Order.objects.filter(table=self.table, status=Order.STATUS_CLOSED).count(),
             1,
         )
+
+    def test_cash_close_counts_on_dashboard(self):
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.post(
+            reverse("close_order", args=[self.order.id]),
+            {"payment_method": "cash"},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_method, Order.PAYMENT_CASH)
+
+        admin = _make_admin("cash_dash_admin")
+        c.force_login(admin)
+        dash = c.get(reverse("admin_summary") + "?range=today")
+        self.assertEqual(dash.status_code, 200)
+        self.assertEqual(dash.context["range_cash_revenue"], Decimal("120.00"))
+        self.assertEqual(dash.context["range_upi_revenue"], Decimal("0"))
+        self.assertEqual(dash.context["range_revenue"], Decimal("120.00"))
+        self.assertEqual(dash.context["range_order_count"], 1)
+
+    def test_close_without_payment_method_rejected(self):
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.post(reverse("close_order", args=[self.order.id]))
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r.url, reverse("billing_detail", args=[self.order.id]))
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.STATUS_OPEN)
 
     def test_zero_bill_close_deletes_order_not_counted(self):
         empty = Order.objects.create(

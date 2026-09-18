@@ -421,15 +421,24 @@ def close_order(request, order_id):
         messages.info(request, f"{table} freed — no charge (empty bill not counted).")
         return redirect("waiter_tables")
 
+    method = (request.POST.get("payment_method") or "").strip().lower()
+    if method not in (Order.PAYMENT_CASH, Order.PAYMENT_UPI):
+        messages.error(request, "Choose Cash or UPI to close the bill.")
+        return redirect("billing_detail", order_id=order.id)
+
     order.status = Order.STATUS_CLOSED
     order.closed_at = timezone.now()
-    order.save(update_fields=["status", "closed_at"])
+    order.payment_method = method
+    order.save(update_fields=["status", "closed_at", "payment_method"])
 
     # Best-effort thank-you SMS — only when phone present + marketing opt-in
     if order.customer_phone and order.marketing_opt_in:
         send_sms_async(order.customer_phone, settings.SMS_THANKYOU)
 
-    messages.success(request, f"{order.table} closed. Total was ₹{total}.")
+    label = order.get_payment_method_display()
+    messages.success(
+        request, f"{order.table} closed ({label}). Total was ₹{total}."
+    )
     return redirect("waiter_tables")
 
 
@@ -472,6 +481,8 @@ def admin_summary(request):
         "from_str": from_str,
         "to_str": to_str,
         "range_revenue": kpis["revenue"],
+        "range_cash_revenue": kpis["cash_revenue"],
+        "range_upi_revenue": kpis["upi_revenue"],
         "range_order_count": kpis["order_count"],
         "range_aov": kpis["aov"],
         "all_time_revenue": all_time,
@@ -504,7 +515,8 @@ def admin_export_csv(request):
     writer = csv.writer(response)
     writer.writerow([
         "order_id", "table", "waiter", "customer_name", "customer_phone",
-        "item_name", "note", "qty", "line_total", "order_total_paid", "closed_at", "marketing_opt_in",
+        "item_name", "note", "qty", "line_total", "order_total_paid",
+        "payment_method", "closed_at", "marketing_opt_in",
     ])
     # Cache order totals to avoid N+1 sum loops
     order_totals = {}
@@ -524,6 +536,7 @@ def admin_export_csv(request):
             item.quantity,
             item.line_total(),
             order_totals[order.id],
+            order.payment_method or "",
             timezone.localtime(closed_at).isoformat(timespec="seconds") if closed_at else "",
             "yes" if order.marketing_opt_in else "no",
         ])
@@ -557,6 +570,7 @@ def admin_export_customers_csv(request):
         "waiter",
         "items",
         "total_paid",
+        "payment_method",
     ])
     for order in orders:
         items_summary = "; ".join(
@@ -577,5 +591,6 @@ def admin_export_customers_csv(request):
             _user_display_name(order.waiter) if order.waiter_id else "",
             items_summary,
             order.total_amount(),
+            order.payment_method or "",
         ])
     return response

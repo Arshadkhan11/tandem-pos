@@ -159,10 +159,20 @@ def kitchen_speed_stats(start_date=None, end_date=None):
 def range_kpis(start_date=None, end_date=None):
     orders = list(closed_orders_qs(start_date, end_date))
     revenue = sum((o.total_amount() for o in orders), Decimal("0"))
+    cash = sum(
+        (o.total_amount() for o in orders if o.payment_method == Order.PAYMENT_CASH),
+        Decimal("0"),
+    )
+    upi = sum(
+        (o.total_amount() for o in orders if o.payment_method == Order.PAYMENT_UPI),
+        Decimal("0"),
+    )
     count = len(orders)
     aov = (revenue / count) if count else Decimal("0")
     return {
         "revenue": revenue,
+        "cash_revenue": cash,
+        "upi_revenue": upi,
         "order_count": count,
         "aov": aov.quantize(Decimal("0.01")) if count else Decimal("0"),
     }

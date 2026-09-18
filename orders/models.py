@@ -66,6 +66,13 @@ class Order(models.Model):
     STATUS_CLOSED = "closed"
     STATUS_CHOICES = [(STATUS_OPEN, "Open"), (STATUS_CLOSED, "Closed")]
 
+    PAYMENT_CASH = "cash"
+    PAYMENT_UPI = "upi"
+    PAYMENT_CHOICES = [
+        (PAYMENT_CASH, "Cash"),
+        (PAYMENT_UPI, "UPI"),
+    ]
+
     table = models.ForeignKey(Table, on_delete=models.PROTECT, related_name="orders")
     waiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -77,6 +84,13 @@ class Order(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_OPEN)
     created_at = models.DateTimeField(default=timezone.now)
     closed_at = models.DateTimeField(null=True, blank=True)
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_CHOICES,
+        blank=True,
+        default="",
+        help_text="Set when the bill is closed (cash or UPI).",
+    )
     # Optional — asked once at order open; never required during rush
     customer_name = models.CharField(max_length=100, blank=True)
     customer_phone = models.CharField(max_length=15, blank=True)

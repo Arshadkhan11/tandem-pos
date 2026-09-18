@@ -43,10 +43,18 @@
 </form>
 
 {# KPI tiles #}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
   <div class="bg-white rounded-xl shadow p-4">
     <div class="text-stone-500 text-xs">Revenue (range)</div>
     <div class="text-2xl font-semibold mt-1">₹{{ range_revenue }}</div>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">Cash (range)</div>
+    <div class="text-2xl font-semibold mt-1">₹{{ range_cash_revenue }}</div>
+  </div>
+  <div class="bg-white rounded-xl shadow p-4">
+    <div class="text-stone-500 text-xs">UPI (range)</div>
+    <div class="text-2xl font-semibold mt-1">₹{{ range_upi_revenue }}</div>
   </div>
   <div class="bg-white rounded-xl shadow p-4">
     <div class="text-stone-500 text-xs">Orders (range)</div>
@@ -172,7 +180,11 @@
   <div class="flex justify-between items-center px-4 py-3 text-sm">
     <div>
       <div class="font-medium">{{ o.customer_name|default:"Guest" }} · {{ o.customer_phone }}</div>
-      <div class="text-stone-400 text-xs">{{ o.table }} · Order #{{ o.id }}{% if o.marketing_opt_in %} · SMS opt-in{% endif %}</div>
+      <div class="text-stone-400 text-xs">
+        {{ o.table }} · Order #{{ o.id }}
+        {% if o.payment_method %} · {{ o.get_payment_method_display }}{% endif %}
+        {% if o.marketing_opt_in %} · SMS opt-in{% endif %}
+      </div>
     </div>
     <div class="text-stone-500 text-xs">₹{{ o.total_amount }}</div>
   </div>
