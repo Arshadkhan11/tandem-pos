@@ -196,6 +196,45 @@
 })();
 </script>
 
+<p class="text-stone-400 text-xs mb-4">
+  Dates use India time (IST). A bill counts on the day it was <span class="font-medium text-stone-500">closed</span>
+  (Cash / UPI), not when the table was opened.
+</p>
+
+<h2 class="text-lg font-semibold mt-2 mb-2 text-stone-600">Sales by day (range)</h2>
+<div class="bg-white rounded-xl shadow divide-y divide-stone-100 mb-4">
+  {% for day in sales_days %}
+  <div class="flex justify-between items-center px-4 py-3 text-sm">
+    <div>
+      <div class="font-medium">{{ day.date_str }}</div>
+      <div class="text-stone-400 text-xs">{{ day.order_count }} bill{{ day.order_count|pluralize }}</div>
+    </div>
+    <div class="text-stone-700 font-semibold">₹{{ day.revenue }}</div>
+  </div>
+  {% empty %}
+  <div class="text-stone-400 text-center py-6 text-sm">No closed bills in this range</div>
+  {% endfor %}
+</div>
+
+<h2 class="text-lg font-semibold mt-2 mb-2 text-stone-600">Bills in range (with close time)</h2>
+<div class="bg-white rounded-xl shadow divide-y divide-stone-100 mb-4">
+  {% for o in recent_bills %}
+  <div class="flex justify-between items-center px-4 py-3 text-sm gap-3">
+    <div class="min-w-0">
+      <div class="font-medium">{{ o.table }} · Order #{{ o.id }}</div>
+      <div class="text-stone-400 text-xs">
+        Closed {{ o.closed_day }} · {{ o.closed_time }}
+        {% if o.payment_method %} · {{ o.get_payment_method_display }}{% endif %}
+        {% if o.waiter_label %} · {{ o.waiter_label }}{% endif %}
+      </div>
+    </div>
+    <div class="text-stone-700 font-medium shrink-0">₹{{ o.total_amount }}</div>
+  </div>
+  {% empty %}
+  <div class="text-stone-400 text-center py-6 text-sm">No closed bills in this range</div>
+  {% endfor %}
+</div>
+
 <h2 class="text-lg font-semibold mt-2 mb-2 text-stone-600">Recent customers (range, with phone)</h2>
 <div class="bg-white rounded-xl shadow divide-y divide-stone-100 mb-4">
   {% for o in recent_customers %}
@@ -204,6 +243,7 @@
       <div class="font-medium">{{ o.customer_name|default:"Guest" }} · {{ o.customer_phone }}</div>
       <div class="text-stone-400 text-xs">
         {{ o.table }} · Order #{{ o.id }}
+        · {{ o.closed_day }} {{ o.closed_time }}
         {% if o.payment_method %} · {{ o.get_payment_method_display }}{% endif %}
         {% if o.marketing_opt_in %} · SMS opt-in{% endif %}
       </div>

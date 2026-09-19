@@ -488,11 +488,18 @@ def admin_summary(request):
     categories = analytics.category_revenue(start, end)
     trend = analytics.daily_revenue_last_n_days(14)
     item_sales = analytics.item_sales_breakdown(start, end)
+    sales_days = analytics.sales_by_day(start, end)
+    recent_bills = analytics.recent_closed_bills(start, end, limit=40)
     recent_customers = (
         analytics.closed_orders_qs(start, end)
         .exclude(customer_phone="")
         .order_by("-closed_at")[:20]
     )
+    for o in recent_customers:
+        local = timezone.localtime(o.closed_at) if o.closed_at else None
+        o.closed_local = local
+        o.closed_day = local.date().isoformat() if local else ""
+        o.closed_time = local.strftime("%I:%M %p").lstrip("0") if local else ""
 
     chart_payload = {
         "trend": trend,
@@ -520,6 +527,8 @@ def admin_summary(request):
         "all_time_revenue": all_time,
         "kitchen": kitchen,
         "item_sales": item_sales,
+        "sales_days": sales_days,
+        "recent_bills": recent_bills,
         "recent_customers": recent_customers,
         "chart_payload": chart_payload,
         "export_query": request.GET.urlencode(),

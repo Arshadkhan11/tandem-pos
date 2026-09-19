@@ -198,3 +198,51 @@ def range_kpis(start_date=None, end_date=None):
 def all_time_revenue():
     orders = closed_orders_qs()
     return sum((o.total_amount() for o in orders), Decimal("0"))
+
+
+def sales_by_day(start_date=None, end_date=None):
+    """
+    One row per India calendar day in range: date, order_count, revenue.
+    Empty days omitted. Sorted newest first.
+    """
+    orders = list(
+        closed_orders_qs(start_date, end_date)
+        .prefetch_related("items__menu_item")
+        .order_by("-closed_at")
+    )
+    buckets = {}
+    for o in orders:
+        if not o.closed_at:
+            continue
+        d = timezone.localtime(o.closed_at, _biz_tz()).date()
+        slot = buckets.setdefault(
+            d, {"date": d, "order_count": 0, "revenue": Decimal("0")}
+        )
+        slot["order_count"] += 1
+        slot["revenue"] += o.total_amount()
+    rows = sorted(buckets.values(), key=lambda r: r["date"], reverse=True)
+    for r in rows:
+        r["date_str"] = r["date"].isoformat()
+        r["revenue"] = r["revenue"].quantize(Decimal("0.01"))
+    return rows
+
+
+def recent_closed_bills(start_date=None, end_date=None, limit=40):
+    """Closed bills in range with local close time for the dashboard list."""
+    orders = list(
+        closed_orders_qs(start_date, end_date)
+        .select_related("table", "waiter", "waiter__staff")
+        .prefetch_related("items__menu_item")
+        .order_by("-closed_at")[:limit]
+    )
+    tz = _biz_tz()
+    for o in orders:
+        local = timezone.localtime(o.closed_at, tz) if o.closed_at else None
+        o.closed_local = local
+        o.closed_day = local.date().isoformat() if local else ""
+        o.closed_time = local.strftime("%I:%M %p").lstrip("0") if local else ""
+        try:
+            o.waiter_label = o.waiter.staff.display_name if o.waiter_id else ""
+        except Exception:
+            o.waiter_label = o.waiter.get_username() if o.waiter_id else ""
+    return orders
