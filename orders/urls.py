@@ -11,6 +11,7 @@ urlpatterns = [
     path("waiter/table/<int:table_id>/", views.waiter_order, name="waiter_order"),
     path("waiter/order/<int:order_id>/add/<int:item_id>/", views.add_item, name="add_item"),
     path("waiter/order/<int:order_id>/item/<int:item_id>/remove/", views.remove_item, name="remove_item"),
+    path("waiter/order/<int:order_id>/item/<int:item_id>/note/", views.set_item_note, name="set_item_note"),
     path("waiter/order/<int:order_id>/customer/", views.set_customer, name="set_customer"),
 
     path("kitchen/", views.kitchen_panel, name="kitchen_panel"),

@@ -309,10 +309,39 @@ def set_customer(request, order_id):
     return redirect("waiter_order", table_id=order.table_id)
 
 
+@require_POST
+def set_item_note(request, order_id, item_id):
+    """Optional kitchen note on a cart line (spicy, sugar less, etc.)."""
+    if not _require_role(request, "waiter"):
+        return redirect("role_login", role="waiter")
+    order = get_object_or_404(
+        Order.objects.select_related("waiter", "waiter__staff", "table"),
+        pk=order_id,
+        status=Order.STATUS_OPEN,
+    )
+    if not _order_owned_by(order, request.user):
+        messages.error(
+            request,
+            f"{order.table} is currently being served by {_user_display_name(order.waiter)}.",
+        )
+        return redirect("waiter_tables")
+
+    line = get_object_or_404(OrderItem, pk=item_id, order=order)
+    note = (request.POST.get("note") or "").strip()[:120]
+    if line.note != note:
+        line.note = note
+        line.save(update_fields=["note"])
+        if note:
+            messages.success(request, f"Note saved for {line.menu_item.name}.")
+        else:
+            messages.info(request, f"Note cleared for {line.menu_item.name}.")
+    return redirect("waiter_order", table_id=order.table_id)
+
+
 def _queue_items():
     return (
         OrderItem.objects.filter(status=OrderItem.STATUS_PENDING, order__status=Order.STATUS_OPEN)
-        .select_related("order", "order__table", "menu_item")
+        .select_related("order", "order__table", "order__waiter", "order__waiter__staff", "menu_item")
         .order_by("added_at")
     )
 
@@ -323,6 +352,9 @@ def _annotate_age(items):
         age = (now - item.added_at).total_seconds()
         item.age_minutes = int(age // 60)
         item.is_late = age >= LATE_THRESHOLD_SECONDS
+        item.waiter_name = (
+            _user_display_name(item.order.waiter) if item.order.waiter_id else ""
+        )
     return items
 
 
