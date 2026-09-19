@@ -50,22 +50,34 @@
 
 <div class="bg-white rounded-xl shadow p-4 mb-4">
   <h2 class="text-sm font-semibold text-stone-600 mb-2">Discount (optional)</h2>
-  <form method="post" action="{% url 'set_discount' order.id %}" class="flex gap-2 items-end">
+  <div class="grid grid-cols-3 gap-2 mb-2">
+    {% for pct in discount_choices %}
+    <form method="post" action="{% url 'set_discount' order.id %}">
+      {% csrf_token %}
+      <input type="hidden" name="discount_percent" value="{{ pct }}">
+      <button type="submit"
+              class="w-full rounded-xl py-3 text-base font-semibold
+                     {% if discount_percent == pct %}bg-red-900 text-amber-50
+                     {% else %}bg-stone-100 text-stone-800 active:bg-stone-200{% endif %}">
+        {{ pct|floatformat:0 }}%
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+  {% if discount_percent %}
+  <form method="post" action="{% url 'set_discount' order.id %}">
     {% csrf_token %}
-    <div class="flex-1">
-      <label for="discount_percent" class="block text-stone-500 text-xs mb-1">Percent %</label>
-      <input id="discount_percent" type="number" name="discount_percent" min="0" max="100" step="0.01"
-             value="{{ discount_percent }}"
-             inputmode="decimal"
-             placeholder="0"
-             class="w-full border-2 border-stone-300 rounded-xl px-3 py-2.5 text-base focus:border-red-800 outline-none">
-    </div>
+    <input type="hidden" name="discount_percent" value="0">
     <button type="submit"
-            class="shrink-0 bg-stone-800 text-amber-50 font-medium rounded-xl px-4 py-2.5 active:bg-stone-900">
-      Apply
+            class="w-full rounded-xl py-2.5 text-sm font-medium border-2 border-stone-300
+                   text-stone-700 bg-white active:bg-stone-50">
+      Undo discount
     </button>
   </form>
-  <p class="text-stone-400 text-xs mt-2">e.g. 10 for 10% off. Apply before Cash / UPI. Leave 0 for no discount.</p>
+  <p class="text-stone-400 text-xs mt-2">Or tap another % to switch (5 → 10 → 15).</p>
+  {% else %}
+  <p class="text-stone-400 text-xs">Tap 5%, 10%, or 15% before Cash / UPI. Optional.</p>
+  {% endif %}
 </div>
 
 {% if total > 0 %}

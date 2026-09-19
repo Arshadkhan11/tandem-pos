@@ -438,6 +438,7 @@ def billing_detail(request, order_id):
         "order": order,
         "subtotal": subtotal,
         "discount_percent": discount_percent,
+        "discount_choices": [Decimal("5.00"), Decimal("10.00"), Decimal("15.00")],
         "discount": discount,
         "total": total,
         "qr_base64": qr_base64,
@@ -450,22 +451,23 @@ def billing_detail(request, order_id):
 
 @require_POST
 def set_discount(request, order_id):
-    """Apply optional % discount on an open bill before payment."""
+    """Apply fixed 5/10/15% discount, or 0 to undo."""
     if not _require_role(request, "waiter"):
         return redirect("role_login", role="waiter")
     order = get_object_or_404(Order, pk=order_id, status=Order.STATUS_OPEN)
     raw = (request.POST.get("discount_percent") or "0").strip().replace(",", "")
     try:
-        percent = Decimal(raw)
+        percent = Decimal(raw).quantize(Decimal("0.01"))
     except Exception:
-        messages.error(request, "Enter a valid discount percent.")
+        messages.error(request, "Invalid discount.")
         return redirect("billing_detail", order_id=order.id)
 
-    if percent < 0:
-        percent = Decimal("0")
-    if percent > 100:
-        percent = Decimal("100")
-    order.discount_percent = percent.quantize(Decimal("0.01"))
+    allowed = {Decimal("0.00"), Decimal("5.00"), Decimal("10.00"), Decimal("15.00")}
+    if percent not in allowed:
+        messages.error(request, "Discount must be 5%, 10%, or 15% (or Undo).")
+        return redirect("billing_detail", order_id=order.id)
+
+    order.discount_percent = percent
     order.discount_amount = order.discount_rupees()
     order.save(update_fields=["discount_percent", "discount_amount"])
     if order.discount_percent:
@@ -475,7 +477,7 @@ def set_discount(request, order_id):
             f"Pay ₹{order.total_amount()}.",
         )
     else:
-        messages.info(request, "Discount cleared.")
+        messages.info(request, "Discount removed. You can apply 5%, 10%, or 15%.")
     return redirect("billing_detail", order_id=order.id)
 
 

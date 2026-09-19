@@ -294,8 +294,27 @@ class BillingUpiTests(TestCase):
             {"discount_percent": "999"},
         )
         self.order.refresh_from_db()
-        self.assertEqual(self.order.discount_percent, Decimal("100.00"))
-        self.assertEqual(self.order.total_amount(), Decimal("0.00"))
+        # Only 5/10/15/0 allowed — invalid left unchanged
+        self.assertEqual(self.order.discount_percent, Decimal("0"))
+        self.assertEqual(self.order.total_amount(), Decimal("120.00"))
+
+    def test_discount_undo_and_switch(self):
+        c = Client()
+        c.force_login(self.waiter)
+        c.post(reverse("set_discount", args=[self.order.id]), {"discount_percent": "5"})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.discount_percent, Decimal("5.00"))
+        self.assertEqual(self.order.total_amount(), Decimal("114.00"))
+
+        c.post(reverse("set_discount", args=[self.order.id]), {"discount_percent": "15"})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.discount_percent, Decimal("15.00"))
+        self.assertEqual(self.order.total_amount(), Decimal("102.00"))
+
+        c.post(reverse("set_discount", args=[self.order.id]), {"discount_percent": "0"})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.discount_percent, Decimal("0.00"))
+        self.assertEqual(self.order.total_amount(), Decimal("120.00"))
 
     def test_remove_last_item_frees_table(self):
         line = self.order.items.get()
