@@ -40,7 +40,13 @@ def _staff_role(request):
 
 
 def _require_role(request, role):
-    return _staff_role(request) == role
+    """Allow exact role match; Admin may open waiter/chef/admin panels too."""
+    actual = _staff_role(request)
+    if actual is None:
+        return False
+    if actual == role:
+        return True
+    return actual == StaffProfile.ROLE_ADMIN
 
 
 def _staff_name(request):
@@ -115,7 +121,11 @@ def role_login(request, role):
             messages.error(request, "Wrong username or password.")
         else:
             profile = getattr(user, "staff", None)
-            if profile is None or profile.role != role:
+            # Admin account may sign in on waiter / chef / admin login pages
+            allowed = profile is not None and (
+                profile.role == role or profile.role == StaffProfile.ROLE_ADMIN
+            )
+            if not allowed:
                 messages.error(request, f"This account is not a {role} login.")
             else:
                 login(request, user)

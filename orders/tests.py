@@ -776,6 +776,30 @@ class StaffAdminSyncAndLoginTests(TestCase):
         self.assertEqual(r.status_code, 302)
         self.assertEqual(r.url, reverse("kitchen_panel"))
 
+    def test_admin_can_login_on_all_role_urls_and_open_panels(self):
+        admin = _make_admin("super_admin")
+        admin.set_password("adminpass99")
+        admin.save()
+        c = Client()
+
+        for role, home in [
+            ("waiter", "waiter_tables"),
+            ("chef", "kitchen_panel"),
+            ("admin", "admin_summary"),
+        ]:
+            c.logout()
+            r = c.post(
+                reverse("role_login", args=[role]),
+                {"username": "super_admin", "password": "adminpass99"},
+            )
+            self.assertEqual(r.status_code, 302, role)
+            self.assertEqual(r.url, reverse(home), role)
+
+        # Panels stay reachable while session is admin
+        self.assertEqual(c.get(reverse("waiter_tables")).status_code, 200)
+        self.assertEqual(c.get(reverse("kitchen_panel")).status_code, 200)
+        self.assertEqual(c.get(reverse("admin_summary")).status_code, 200)
+
 
 @override_settings(**TEST_SETTINGS)
 class CategoryRevenueChartTests(TestCase):
