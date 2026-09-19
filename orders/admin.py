@@ -181,7 +181,7 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "table", "waiter", "status", "payment_method", "discount_amount", "created_at", "closed_at"]
+    list_display = ["id", "table", "waiter", "status", "payment_method", "discount_percent", "discount_amount", "created_at", "closed_at"]
     list_filter = ["status", "payment_method"]
     list_editable = ["waiter"]
     raw_id_fields = ["waiter"]

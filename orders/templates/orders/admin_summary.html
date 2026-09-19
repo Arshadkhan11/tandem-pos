@@ -224,7 +224,7 @@
       <div class="font-medium">{{ o.table }} · Order #{{ o.id }}</div>
       <div class="text-stone-400 text-xs">
         Closed {{ o.closed_day }} · {{ o.closed_time }}
-        {% if o.discount_amount %} · discount −₹{{ o.discount_amount }}{% endif %}
+        {% if o.discount_percent %} · discount {{ o.discount_percent }}% (−₹{{ o.discount_amount }}){% endif %}
         {% if o.payment_method %} · {{ o.get_payment_method_display }}{% endif %}
         {% if o.waiter_label %} · {{ o.waiter_label }}{% endif %}
       </div>

@@ -420,7 +420,8 @@ def billing_detail(request, order_id):
         return redirect("role_login", role="waiter")
     order = get_object_or_404(Order, pk=order_id, status=Order.STATUS_OPEN)
     subtotal = order.subtotal_amount()
-    discount = order.discount_amount or Decimal("0")
+    discount_percent = order.discount_percent or Decimal("0")
+    discount = order.discount_rupees()
     total = order.total_amount()
     upi_id, payee_name = _upi_payee()
 
@@ -436,6 +437,7 @@ def billing_detail(request, order_id):
     return render(request, "orders/billing_detail.html", {
         "order": order,
         "subtotal": subtotal,
+        "discount_percent": discount_percent,
         "discount": discount,
         "total": total,
         "qr_base64": qr_base64,
@@ -448,28 +450,29 @@ def billing_detail(request, order_id):
 
 @require_POST
 def set_discount(request, order_id):
-    """Apply optional ₹ discount on an open bill before payment."""
+    """Apply optional % discount on an open bill before payment."""
     if not _require_role(request, "waiter"):
         return redirect("role_login", role="waiter")
     order = get_object_or_404(Order, pk=order_id, status=Order.STATUS_OPEN)
-    raw = (request.POST.get("discount_amount") or "0").strip().replace(",", "")
+    raw = (request.POST.get("discount_percent") or "0").strip().replace(",", "")
     try:
-        discount = Decimal(raw)
+        percent = Decimal(raw)
     except Exception:
-        messages.error(request, "Enter a valid discount amount.")
+        messages.error(request, "Enter a valid discount percent.")
         return redirect("billing_detail", order_id=order.id)
 
-    if discount < 0:
-        discount = Decimal("0")
-    subtotal = order.subtotal_amount()
-    if discount > subtotal:
-        discount = subtotal
-    order.discount_amount = discount.quantize(Decimal("0.01"))
-    order.save(update_fields=["discount_amount"])
-    if order.discount_amount:
+    if percent < 0:
+        percent = Decimal("0")
+    if percent > 100:
+        percent = Decimal("100")
+    order.discount_percent = percent.quantize(Decimal("0.01"))
+    order.discount_amount = order.discount_rupees()
+    order.save(update_fields=["discount_percent", "discount_amount"])
+    if order.discount_percent:
         messages.success(
             request,
-            f"Discount ₹{order.discount_amount} applied. Pay ₹{order.total_amount()}.",
+            f"Discount {order.discount_percent}% (−₹{order.discount_amount}) applied. "
+            f"Pay ₹{order.total_amount()}.",
         )
     else:
         messages.info(request, "Discount cleared.")
@@ -507,7 +510,9 @@ def close_order(request, order_id):
     order.status = Order.STATUS_CLOSED
     order.closed_at = timezone.now()
     order.payment_method = method
-    order.save(update_fields=["status", "closed_at", "payment_method"])
+    # Freeze ₹ off at close time for reports
+    order.discount_amount = order.discount_rupees()
+    order.save(update_fields=["status", "closed_at", "payment_method", "discount_amount"])
 
     # Best-effort thank-you SMS — only when phone present + marketing opt-in
     if order.customer_phone and order.marketing_opt_in:
@@ -515,10 +520,11 @@ def close_order(request, order_id):
 
     label = order.get_payment_method_display()
     disc = order.discount_amount or Decimal("0")
-    if disc:
+    pct = order.discount_percent or Decimal("0")
+    if pct:
         messages.success(
             request,
-            f"{order.table} closed ({label}). Subtotal ₹{subtotal} − discount ₹{disc} = ₹{total}.",
+            f"{order.table} closed ({label}). Subtotal ₹{subtotal} − {pct}% (−₹{disc}) = ₹{total}.",
         )
     else:
         messages.success(
@@ -610,8 +616,9 @@ def admin_export_csv(request):
     writer = csv.writer(response)
     writer.writerow([
         "order_id", "table", "waiter", "customer_name", "customer_phone",
-        "item_name", "note", "qty", "line_total", "order_subtotal", "discount",
-        "order_total_paid", "payment_method", "closed_at", "marketing_opt_in",
+        "item_name", "note", "qty", "line_total", "order_subtotal",
+        "discount_percent", "discount", "order_total_paid",
+        "payment_method", "closed_at", "marketing_opt_in",
     ])
     # Cache order totals to avoid N+1 sum loops
     order_totals = {}
@@ -622,10 +629,11 @@ def admin_export_csv(request):
             order_totals[order.id] = order.total_amount()
             order_meta[order.id] = (
                 order.subtotal_amount(),
-                order.discount_amount or Decimal("0"),
+                order.discount_percent or Decimal("0"),
+                order.discount_rupees(),
             )
         closed_at = order.closed_at
-        subtotal, discount = order_meta[order.id]
+        subtotal, discount_pct, discount = order_meta[order.id]
         writer.writerow([
             order.id,
             str(order.table),
@@ -637,6 +645,7 @@ def admin_export_csv(request):
             item.quantity,
             item.line_total(),
             subtotal,
+            discount_pct,
             discount,
             order_totals[order.id],
             order.payment_method or "",
@@ -673,6 +682,7 @@ def admin_export_customers_csv(request):
         "waiter",
         "items",
         "total_paid",
+        "discount_percent",
         "discount",
         "payment_method",
     ])
@@ -695,7 +705,8 @@ def admin_export_customers_csv(request):
             _user_display_name(order.waiter) if order.waiter_id else "",
             items_summary,
             order.total_amount(),
-            order.discount_amount or Decimal("0"),
+            order.discount_percent or Decimal("0"),
+            order.discount_rupees(),
             order.payment_method or "",
         ])
     return response

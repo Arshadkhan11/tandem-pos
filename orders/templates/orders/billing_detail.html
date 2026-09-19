@@ -25,9 +25,9 @@
       <span>Subtotal</span>
       <span>₹{{ subtotal }}</span>
     </div>
-    {% if discount %}
+    {% if discount_percent %}
     <div class="flex justify-between text-red-800 font-medium">
-      <span>Discount</span>
+      <span>Discount ({{ discount_percent }}%)</span>
       <span>− ₹{{ discount }}</span>
     </div>
     {% endif %}
@@ -53,9 +53,9 @@
   <form method="post" action="{% url 'set_discount' order.id %}" class="flex gap-2 items-end">
     {% csrf_token %}
     <div class="flex-1">
-      <label for="discount_amount" class="block text-stone-500 text-xs mb-1">Amount ₹</label>
-      <input id="discount_amount" type="number" name="discount_amount" min="0" step="0.01"
-             max="{{ subtotal }}" value="{{ discount }}"
+      <label for="discount_percent" class="block text-stone-500 text-xs mb-1">Percent %</label>
+      <input id="discount_percent" type="number" name="discount_percent" min="0" max="100" step="0.01"
+             value="{{ discount_percent }}"
              inputmode="decimal"
              placeholder="0"
              class="w-full border-2 border-stone-300 rounded-xl px-3 py-2.5 text-base focus:border-red-800 outline-none">
@@ -65,7 +65,7 @@
       Apply
     </button>
   </form>
-  <p class="text-stone-400 text-xs mt-2">Apply discount before Cash / UPI. Leave 0 for no discount.</p>
+  <p class="text-stone-400 text-xs mt-2">e.g. 10 for 10% off. Apply before Cash / UPI. Leave 0 for no discount.</p>
 </div>
 
 {% if total > 0 %}
@@ -81,7 +81,7 @@
 </div>
 {% else %}
 <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm mb-4">
-  Full discount applied — payable is ₹0. Close with Cash or UPI to free the table (counts as a ₹0 bill).
+  100% discount — payable is ₹0. Close with Cash or UPI to free the table (counts as a ₹0 bill).
 </div>
 {% endif %}
 

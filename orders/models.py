@@ -91,11 +91,17 @@ class Order(models.Model):
         default="",
         help_text="Set when the bill is closed (cash or UPI).",
     )
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        help_text="Checkout discount % (0–100) applied before payment.",
+    )
     discount_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
-        help_text="₹ discount applied at checkout before payment.",
+        help_text="₹ off computed from discount % at apply/close (for reports).",
     )
     # Optional — asked once at order open; never required during rush
     customer_name = models.CharField(max_length=100, blank=True)
@@ -117,17 +123,28 @@ class Order(models.Model):
 
         return sum((item.line_total() for item in self.items.all()), Decimal("0"))
 
-    def total_amount(self):
-        """Amount due after discount (what the guest pays / revenue)."""
-        from decimal import Decimal
+    def discount_rupees(self):
+        """₹ discount from percent (clamped to subtotal)."""
+        from decimal import Decimal, ROUND_HALF_UP
 
         subtotal = self.subtotal_amount()
-        discount = self.discount_amount or Decimal("0")
-        if discount < 0:
-            discount = Decimal("0")
-        if discount > subtotal:
-            discount = subtotal
-        return subtotal - discount
+        pct = self.discount_percent or Decimal("0")
+        if pct < 0:
+            pct = Decimal("0")
+        if pct > 100:
+            pct = Decimal("100")
+        if pct == 0 or subtotal == 0:
+            return Decimal("0.00")
+        amount = (subtotal * pct / Decimal("100")).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        if amount > subtotal:
+            amount = subtotal
+        return amount
+
+    def total_amount(self):
+        """Amount due after % discount (what the guest pays / revenue)."""
+        return self.subtotal_amount() - self.discount_rupees()
 
     def phone_digits(self):
         return "".join(c for c in self.customer_phone if c.isdigit())
