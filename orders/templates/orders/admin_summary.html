@@ -29,7 +29,11 @@
              class="w-full border-2 border-stone-300 rounded-xl px-3 py-2 text-sm focus:border-red-800 outline-none">
     </div>
     <button type="submit" name="range" value="custom"
-            class="bg-stone-800 text-white text-sm font-medium rounded-xl px-4 py-2.5">Apply custom</button>
+            class="bg-stone-800 text-white text-sm font-medium rounded-xl px-4 py-2.5 shrink-0">
+      Apply custom
+    </button>
+  </div>
+  <div class="flex flex-wrap gap-2">
     <a href="{% url 'admin_export_customers_csv' %}?{{ export_query }}"
        class="inline-flex justify-center bg-red-900 text-amber-50 font-medium rounded-xl px-4 py-2.5 text-sm">
       Customers CSV
@@ -39,7 +43,7 @@
       Item sales CSV
     </a>
   </div>
-  <p class="text-stone-400 text-xs">Customers CSV = one row per bill (name, phone, items, total paid, waiter). Item sales CSV = one row per dish line.</p>
+  <p class="text-stone-400 text-xs">Pick Today / 7 days / etc. for quick filters. For a custom range, set From + To, then Apply custom. CSV exports use the current filter.</p>
 </form>
 
 {# KPI tiles #}
@@ -110,67 +114,85 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-  const data = JSON.parse(document.getElementById('dashboard-charts').textContent);
+  const el = document.getElementById('dashboard-charts');
+  if (!el || typeof Chart === 'undefined') return;
+  let data;
+  try {
+    data = JSON.parse(el.textContent);
+  } catch (err) {
+    return;
+  }
   const red = '#7f1d1d';
   const amber = '#fbbf24';
   const stone = '#a8a29e';
+  const emptyPlugin = { legend: { display: false } };
 
-  new Chart(document.getElementById('chart-trend'), {
-    type: 'bar',
-    data: {
-      labels: data.trend.labels,
-      datasets: [{ label: '₹ revenue', data: data.trend.values, backgroundColor: red }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true } }
-    }
-  });
+  try {
+    new Chart(document.getElementById('chart-trend'), {
+      type: 'bar',
+      data: {
+        labels: data.trend.labels,
+        datasets: [{ label: '₹ revenue', data: data.trend.values, backgroundColor: red }]
+      },
+      options: {
+        responsive: true,
+        plugins: emptyPlugin,
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  } catch (err) {}
 
-  new Chart(document.getElementById('chart-top'), {
-    type: 'bar',
-    data: {
-      labels: data.topItems.labels,
-      datasets: [{
-        label: '₹ revenue',
-        data: data.topItems.revenue,
-        backgroundColor: amber,
-        qty: data.topItems.qty
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            afterLabel: function (ctx) {
-              const q = ctx.dataset.qty[ctx.dataIndex];
-              return q != null ? ('Qty sold: ' + q) : '';
+  try {
+    new Chart(document.getElementById('chart-top'), {
+      type: 'bar',
+      data: {
+        labels: (data.topItems && data.topItems.labels) || [],
+        datasets: [{
+          label: '₹ revenue',
+          data: (data.topItems && data.topItems.revenue) || [],
+          backgroundColor: amber,
+          qty: (data.topItems && data.topItems.qty) || []
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel: function (ctx) {
+                const q = ctx.dataset.qty[ctx.dataIndex];
+                return q != null ? ('Qty sold: ' + q) : '';
+              }
             }
           }
-        }
-      },
-      scales: { x: { beginAtZero: true } }
-    }
-  });
+        },
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+  } catch (err) {}
 
-  new Chart(document.getElementById('chart-cats'), {
-    type: 'doughnut',
-    data: {
-      labels: data.categories.labels,
-      datasets: [{
-        data: data.categories.values,
-        backgroundColor: [red, amber, stone, '#b91c1c', '#d6d3d1', '#44403c', '#fef3c7', '#78716c']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: 'right' } }
-    }
-  });
+  try {
+    const catLabels = (data.categories && data.categories.labels) || [];
+    const catValues = (data.categories && data.categories.values) || [];
+    new Chart(document.getElementById('chart-cats'), {
+      type: 'doughnut',
+      data: {
+        labels: catLabels.length ? catLabels : ['No sales'],
+        datasets: [{
+          data: catValues.length ? catValues : [1],
+          backgroundColor: catValues.length
+            ? [red, amber, stone, '#b91c1c', '#d6d3d1', '#44403c', '#fef3c7', '#78716c']
+            : ['#e7e5e4']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'right' } }
+      }
+    });
+  } catch (err) {}
 })();
 </script>
 
