@@ -254,6 +254,48 @@ class BillingUpiTests(TestCase):
             0,
         )
 
+    def test_discount_reduces_payable_and_dashboard_revenue(self):
+        c = Client()
+        c.force_login(self.waiter)
+        # Subtotal ₹120 — apply ₹20 discount → pay ₹100
+        r = c.post(
+            reverse("set_discount", args=[self.order.id]),
+            {"discount_amount": "20"},
+        )
+        self.assertEqual(r.status_code, 302)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.discount_amount, Decimal("20.00"))
+        self.assertEqual(self.order.subtotal_amount(), Decimal("120.00"))
+        self.assertEqual(self.order.total_amount(), Decimal("100.00"))
+
+        bill = c.get(reverse("billing_detail", args=[self.order.id]))
+        self.assertEqual(bill.context["subtotal"], Decimal("120.00"))
+        self.assertEqual(bill.context["total"], Decimal("100.00"))
+
+        c.post(
+            reverse("close_order", args=[self.order.id]),
+            {"payment_method": "cash"},
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.STATUS_CLOSED)
+
+        admin = _make_admin("disc_admin")
+        c.force_login(admin)
+        dash = c.get(reverse("admin_summary") + "?range=today")
+        self.assertEqual(dash.context["range_revenue"], Decimal("100.00"))
+        self.assertEqual(dash.context["range_cash_revenue"], Decimal("100.00"))
+
+    def test_discount_cannot_exceed_subtotal(self):
+        c = Client()
+        c.force_login(self.waiter)
+        c.post(
+            reverse("set_discount", args=[self.order.id]),
+            {"discount_amount": "9999"},
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.discount_amount, Decimal("120.00"))
+        self.assertEqual(self.order.total_amount(), Decimal("0.00"))
+
     def test_remove_last_item_frees_table(self):
         line = self.order.items.get()
         # qty 3 → remove down to delete

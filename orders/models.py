@@ -91,6 +91,12 @@ class Order(models.Model):
         default="",
         help_text="Set when the bill is closed (cash or UPI).",
     )
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        help_text="₹ discount applied at checkout before payment.",
+    )
     # Optional — asked once at order open; never required during rush
     customer_name = models.CharField(max_length=100, blank=True)
     customer_phone = models.CharField(max_length=15, blank=True)
@@ -105,8 +111,23 @@ class Order(models.Model):
             ),
         ]
 
+    def subtotal_amount(self):
+        """Sum of line items before discount."""
+        from decimal import Decimal
+
+        return sum((item.line_total() for item in self.items.all()), Decimal("0"))
+
     def total_amount(self):
-        return sum(item.line_total() for item in self.items.all())
+        """Amount due after discount (what the guest pays / revenue)."""
+        from decimal import Decimal
+
+        subtotal = self.subtotal_amount()
+        discount = self.discount_amount or Decimal("0")
+        if discount < 0:
+            discount = Decimal("0")
+        if discount > subtotal:
+            discount = subtotal
+        return subtotal - discount
 
     def phone_digits(self):
         return "".join(c for c in self.customer_phone if c.isdigit())
