@@ -1,9 +1,11 @@
 """Shared aggregation helpers for the /admin-summary/ dashboard and CSV export."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
@@ -11,6 +13,33 @@ from django.utils import timezone
 from .models import MenuItem, Order, OrderItem
 
 LATE_THRESHOLD = 10 * 60  # seconds — keep in sync with views.LATE_THRESHOLD_SECONDS
+
+
+def _biz_tz():
+    """Restaurant calendar day timezone (India)."""
+    try:
+        return ZoneInfo(getattr(settings, "TIME_ZONE", "Asia/Kolkata"))
+    except Exception:
+        return ZoneInfo("Asia/Kolkata")
+
+
+def _day_start(d):
+    """Inclusive start of calendar day `d` in business timezone, as aware UTC datetime."""
+    return timezone.make_aware(datetime.combine(d, time.min), _biz_tz())
+
+
+def _day_end_exclusive(d):
+    """Exclusive end of calendar day `d` (start of next day)."""
+    return _day_start(d + timedelta(days=1))
+
+
+def _filter_closed_at(qs, start_date=None, end_date=None, field="closed_at"):
+    """Filter by business-local calendar dates (not UTC __date)."""
+    if start_date is not None:
+        qs = qs.filter(**{f"{field}__gte": _day_start(start_date)})
+    if end_date is not None:
+        qs = qs.filter(**{f"{field}__lt": _day_end_exclusive(end_date)})
+    return qs
 
 
 def parse_dashboard_range(get):
@@ -52,20 +81,13 @@ def closed_orders_qs(start_date=None, end_date=None):
         .annotate(_line_count=Count("items"))
         .filter(_line_count__gt=0)
     )
-    if start_date is not None:
-        qs = qs.filter(closed_at__date__gte=start_date)
-    if end_date is not None:
-        qs = qs.filter(closed_at__date__lte=end_date)
-    return qs
+    return _filter_closed_at(qs, start_date, end_date, field="closed_at")
 
 
 def item_sales_breakdown(start_date=None, end_date=None, limit=None):
     """Item-wise qty + revenue for closed orders in range. Shared by dashboard + CSV."""
     qs = OrderItem.objects.filter(order__status=Order.STATUS_CLOSED)
-    if start_date is not None:
-        qs = qs.filter(order__closed_at__date__gte=start_date)
-    if end_date is not None:
-        qs = qs.filter(order__closed_at__date__lte=end_date)
+    qs = _filter_closed_at(qs, start_date, end_date, field="order__closed_at")
     rows = (
         qs.values("menu_item__name")
         .annotate(qty=Sum("quantity"), revenue=Sum(F("quantity") * F("menu_item__price")))
@@ -78,10 +100,7 @@ def item_sales_breakdown(start_date=None, end_date=None, limit=None):
 
 def category_revenue(start_date=None, end_date=None):
     qs = OrderItem.objects.filter(order__status=Order.STATUS_CLOSED)
-    if start_date is not None:
-        qs = qs.filter(order__closed_at__date__gte=start_date)
-    if end_date is not None:
-        qs = qs.filter(order__closed_at__date__lte=end_date)
+    qs = _filter_closed_at(qs, start_date, end_date, field="order__closed_at")
     rows = (
         qs.values("menu_item__category")
         .annotate(revenue=Sum(F("quantity") * F("menu_item__price")))
@@ -101,12 +120,13 @@ def daily_revenue_last_n_days(n=14):
     today = timezone.localdate()
     start = today - timedelta(days=n - 1)
     item_rows = (
-        OrderItem.objects.filter(
-            order__status=Order.STATUS_CLOSED,
-            order__closed_at__date__gte=start,
-            order__closed_at__date__lte=today,
+        _filter_closed_at(
+            OrderItem.objects.filter(order__status=Order.STATUS_CLOSED),
+            start,
+            today,
+            field="order__closed_at",
         )
-        .annotate(day=TruncDate("order__closed_at"))
+        .annotate(day=TruncDate("order__closed_at", tzinfo=_biz_tz()))
         .values("day")
         .annotate(revenue=Sum(F("quantity") * F("menu_item__price")))
         .order_by("day")
@@ -126,10 +146,7 @@ def kitchen_speed_stats(start_date=None, end_date=None):
         status=OrderItem.STATUS_READY,
         ready_at__isnull=False,
     )
-    if start_date is not None:
-        qs = qs.filter(ready_at__date__gte=start_date)
-    if end_date is not None:
-        qs = qs.filter(ready_at__date__lte=end_date)
+    qs = _filter_closed_at(qs, start_date, end_date, field="ready_at")
 
     total = qs.count()
     if total == 0:

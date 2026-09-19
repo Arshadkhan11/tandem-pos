@@ -532,11 +532,12 @@ def admin_export_csv(request):
         return redirect("role_login", role="admin")
 
     start, end, range_key, _, _ = analytics.parse_dashboard_range(request.GET)
-    items = OrderItem.objects.filter(order__status=Order.STATUS_CLOSED)
-    if start is not None:
-        items = items.filter(order__closed_at__date__gte=start)
-    if end is not None:
-        items = items.filter(order__closed_at__date__lte=end)
+    items = analytics._filter_closed_at(
+        OrderItem.objects.filter(order__status=Order.STATUS_CLOSED),
+        start,
+        end,
+        field="order__closed_at",
+    )
     items = items.select_related(
         "order", "order__table", "order__waiter", "order__waiter__staff", "menu_item",
     ).order_by("order_id", "id")

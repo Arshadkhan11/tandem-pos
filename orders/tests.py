@@ -433,6 +433,43 @@ class AdminDashboardRangeTests(TestCase):
         self.assertEqual(rev, Decimal("100.00"))
         self.assertEqual(count, 1)
 
+    @override_settings(TIME_ZONE="Asia/Kolkata", USE_TZ=True)
+    def test_ist_early_morning_counts_as_ist_today_not_utc_yesterday(self):
+        """Bill closed 05:00 IST on the 19th is still UTC 18th — must count as IST today."""
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+
+        from orders import analytics
+
+        ist = ZoneInfo("Asia/Kolkata")
+        # 19 Sept 2026 05:00 IST == 18 Sept 2026 23:30 UTC
+        closed_ist = timezone.make_aware(datetime(2026, 9, 19, 5, 0, 0), ist)
+        item = MenuItem.objects.get(name="Naan")
+        o = Order.objects.create(
+            table=Table.objects.create(number=404),
+            status=Order.STATUS_CLOSED,
+            waiter=self.waiter,
+            closed_at=closed_ist,
+            payment_method=Order.PAYMENT_CASH,
+        )
+        OrderItem.objects.create(order=o, menu_item=item, quantity=1)  # ₹50
+
+        ist_day = closed_ist.date()  # 2026-09-19
+        utc_day = closed_ist.astimezone(ZoneInfo("UTC")).date()  # 2026-09-18
+        self.assertEqual(ist_day.isoformat(), "2026-09-19")
+        self.assertEqual(utc_day.isoformat(), "2026-09-18")
+
+        self.assertTrue(
+            analytics.closed_orders_qs(ist_day, ist_day).filter(pk=o.pk).exists()
+        )
+        self.assertFalse(
+            analytics.closed_orders_qs(utc_day, utc_day).filter(pk=o.pk).exists()
+        )
+        # Revenue for IST day includes this ₹50 bill (may also include setUp "today" if same calendar day)
+        kpis = analytics.range_kpis(ist_day, ist_day)
+        self.assertGreaterEqual(kpis["revenue"], Decimal("50.00"))
+        self.assertIn(o, list(analytics.closed_orders_qs(ist_day, ist_day)))
+
     def test_empty_closed_orders_excluded_from_kpis(self):
         Order.objects.create(
             table=self.table,
