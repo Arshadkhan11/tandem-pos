@@ -37,28 +37,38 @@
 <div class="bg-white rounded-xl shadow mb-4 divide-y divide-stone-100">
   <div class="px-4 py-2 text-sm font-medium text-stone-500">Current order</div>
   {% for item in order.items.all %}
-  <div class="px-4 py-3 flex items-center justify-between gap-2 text-sm">
-    <div class="min-w-0 flex-1">
-      <div class="font-medium truncate">{{ item.menu_item.name }}</div>
-      {% if item.note %}
-      <div class="text-red-800 text-xs font-medium truncate">Note: {{ item.note }}</div>
-      {% endif %}
-      <div class="text-stone-500 text-xs">₹{{ item.line_total }}{% if item.status == 'ready' %} · ready{% endif %}</div>
+  <div class="px-4 py-3 space-y-2 text-sm">
+    <div class="flex items-center justify-between gap-2">
+      <div class="min-w-0 flex-1">
+        <div class="font-medium truncate">{{ item.menu_item.name }}</div>
+        <div class="text-stone-500 text-xs">₹{{ item.line_total }}{% if item.status == 'ready' %} · ready{% endif %}</div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <form method="post" action="{% url 'remove_item' order.id item.id %}">
+          {% csrf_token %}
+          <button type="submit" aria-label="Remove one"
+                  class="w-9 h-9 rounded-lg bg-stone-200 text-stone-800 text-lg font-semibold active:bg-stone-300">−</button>
+        </form>
+        <span class="w-6 text-center font-semibold">{{ item.quantity }}</span>
+        <form method="post" action="{% url 'add_item' order.id item.menu_item.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="note" value="{{ item.note }}">
+          <button type="submit" aria-label="Add one"
+                  class="w-9 h-9 rounded-lg bg-red-900 text-amber-50 text-lg font-semibold active:bg-red-950">+</button>
+        </form>
+      </div>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <form method="post" action="{% url 'remove_item' order.id item.id %}">
-        {% csrf_token %}
-        <button type="submit" aria-label="Remove one"
-                class="w-9 h-9 rounded-lg bg-stone-200 text-stone-800 text-lg font-semibold active:bg-stone-300">−</button>
-      </form>
-      <span class="w-6 text-center font-semibold">{{ item.quantity }}</span>
-      <form method="post" action="{% url 'add_item' order.id item.menu_item.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="note" value="{{ item.note }}">
-        <button type="submit" aria-label="Add one"
-                class="w-9 h-9 rounded-lg bg-red-900 text-amber-50 text-lg font-semibold active:bg-red-950">+</button>
-      </form>
-    </div>
+    <form method="post" action="{% url 'set_item_note' order.id item.id %}" class="flex gap-2 items-center">
+      {% csrf_token %}
+      <input type="text" name="note" value="{{ item.note }}" maxlength="120"
+             placeholder="Note for chef (optional) — spicy, sugar less…"
+             class="flex-1 min-w-0 border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs
+                    focus:border-red-800 outline-none bg-stone-50">
+      <button type="submit"
+              class="shrink-0 text-xs font-medium bg-stone-800 text-white rounded-lg px-3 py-1.5 active:bg-stone-900">
+        Save
+      </button>
+    </form>
   </div>
   {% empty %}
   <div class="px-4 py-3 text-sm text-stone-400">No items yet — add from below</div>
@@ -71,12 +81,7 @@
   {% endif %}
 </div>
 
-<div class="sticky top-[3.25rem] z-[5] -mx-3 px-3 py-2 bg-stone-100/95 backdrop-blur-sm mb-2 space-y-2">
-  <label for="item-note" class="sr-only">Note for next item</label>
-  <input id="item-note" type="text" maxlength="120" autocomplete="off"
-         placeholder="Note for next item (e.g. spicy, gravy) — optional"
-         class="w-full border-2 border-amber-400/80 rounded-xl px-4 py-2.5 text-base bg-amber-50
-                focus:border-red-800 outline-none shadow-sm">
+<div class="sticky top-[3.25rem] z-[5] -mx-3 px-3 py-2 bg-stone-100/95 backdrop-blur-sm mb-2">
   <label for="menu-search" class="sr-only">Search menu</label>
   <input id="menu-search" type="search" inputmode="search" autocomplete="off"
          placeholder="Search menu…"
@@ -92,9 +97,8 @@
   <div class="grid grid-cols-2 gap-2">
     {% for item in items %}
     <form method="post" action="{% url 'add_item' order.id item.id %}"
-          class="menu-item menu-add-form" data-name="{{ item.name|lower }}">
+          class="menu-item" data-name="{{ item.name|lower }}">
       {% csrf_token %}
-      <input type="hidden" name="note" value="" class="item-note-field">
       <button type="submit" class="w-full bg-white rounded-lg shadow px-3 py-3 text-left active:bg-stone-50">
         <div class="font-medium text-sm">{{ item.name }}</div>
         <div class="text-stone-500 text-xs">₹{{ item.price }}</div>
@@ -108,16 +112,6 @@
 
 <script>
 (function () {
-  const noteInput = document.getElementById('item-note');
-  document.querySelectorAll('.menu-add-form').forEach(function (form) {
-    form.addEventListener('submit', function () {
-      const field = form.querySelector('.item-note-field');
-      if (field && noteInput) {
-        field.value = (noteInput.value || '').trim().slice(0, 120);
-      }
-    });
-  });
-
   const input = document.getElementById('menu-search');
   const empty = document.getElementById('menu-search-empty');
   if (!input) return;

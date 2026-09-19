@@ -274,7 +274,7 @@ class BillingUpiTests(TestCase):
 class ItemNoteTests(TestCase):
     def setUp(self):
         self.table = Table.objects.create(number=9)
-        self.waiter = _make_waiter("note_waiter")
+        self.waiter = _make_waiter("note_waiter", "Note Waiter")
         self.chef = User.objects.create_user(username="note_chef", password="x")
         StaffProfile.objects.create(
             user=self.chef, role=StaffProfile.ROLE_CHEF, display_name="Note Chef"
@@ -307,7 +307,21 @@ class ItemNoteTests(TestCase):
         self.assertEqual(by_note["gravy"], 1)
         self.assertEqual(by_note["spicy"], 2)
 
-    def test_kitchen_shows_note(self):
+    def test_set_item_note_on_cart_line(self):
+        line = OrderItem.objects.create(
+            order=self.order, menu_item=self.item, quantity=1
+        )
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.post(
+            reverse("set_item_note", args=[self.order.id, line.id]),
+            {"note": "sugar less"},
+        )
+        self.assertEqual(r.status_code, 302)
+        line.refresh_from_db()
+        self.assertEqual(line.note, "sugar less")
+
+    def test_kitchen_shows_note_and_waiter(self):
         OrderItem.objects.create(
             order=self.order,
             menu_item=self.item,
@@ -320,6 +334,7 @@ class ItemNoteTests(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, "less oil, gravy")
         self.assertContains(r, "Chilli Chicken")
+        self.assertContains(r, "Note Waiter")  # display_name from _make_waiter default
 
 
 @override_settings(**TEST_SETTINGS)
