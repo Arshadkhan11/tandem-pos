@@ -164,16 +164,35 @@ class BillingUpiTests(TestCase):
         )
         OrderItem.objects.create(order=self.order, menu_item=self.item, quantity=3)
 
-    def test_billing_total_and_qr_with_empty_restaurant_settings(self):
+    def test_billing_total_with_empty_restaurant_settings(self):
         RestaurantSettings.objects.all().delete()
         c = Client()
         c.force_login(self.waiter)
         r = c.get(reverse("billing_detail", args=[self.order.id]))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.context["total"], Decimal("120.00"))
+
+    def test_billing_detail_has_no_qr_or_discount_buttons_for_customer(self):
+        """Staff bill-review screen must never show the QR/pay flow — only a handoff link."""
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.get(reverse("billing_detail", args=[self.order.id]))
+        self.assertEqual(r.status_code, 200)
+        self.assertNotIn("qr_base64", r.context)
+        self.assertNotIn("data:image/png;base64,", r.content.decode())
+        self.assertContains(r, "Show bill to customer")
+
+    def test_billing_pay_screen_has_qr_but_no_discount_controls(self):
+        """Customer-facing pay screen shows the QR and total, never the discount buttons."""
+        c = Client()
+        c.force_login(self.waiter)
+        r = c.get(reverse("billing_pay", args=[self.order.id]))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.context["total"], Decimal("120.00"))
         self.assertTrue(r.context["qr_base64"])
-        # Fallback VPA used in generated URI path — image exists even without RestaurantSettings
         self.assertIn("data:image/png;base64,", r.content.decode())
+        self.assertNotContains(r, "Discount (optional)")
+        self.assertNotContains(r, "set_discount")
 
     def test_billing_uses_restaurant_settings_when_present(self):
         rs = RestaurantSettings.load()

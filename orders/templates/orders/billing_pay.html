@@ -1,0 +1,49 @@
+{% extends "orders/base.html" %}
+{% block title %}Pay — {{ order.table }}{% endblock %}
+{% block header_right %}<a href="{% url 'billing_detail' order.id %}" class="text-sm underline opacity-90">Back</a>{% endblock %}
+{% block content %}
+<div class="bg-white rounded-xl shadow p-5 mb-4">
+  <div class="text-stone-500 text-sm">{{ order.table }} — Order #{{ order.id }}</div>
+  <div class="divide-y divide-stone-100 my-3">
+    {% for item in order.items.all %}
+    <div class="py-2 flex justify-between text-sm">
+      <span>{{ item.quantity }} × {{ item.menu_item.name }}</span>
+      <span class="text-stone-500">₹{{ item.line_total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="space-y-1 pt-2 border-t border-stone-100 text-sm">
+    <div class="flex justify-between text-stone-600">
+      <span>Subtotal</span>
+      <span>₹{{ subtotal }}</span>
+    </div>
+    {% if discount_percent %}
+    <div class="flex justify-between text-red-800 font-medium">
+      <span>Discount ({{ discount_percent }}%)</span>
+      <span>− ₹{{ discount }}</span>
+    </div>
+    {% endif %}
+    <div class="flex justify-between text-xl font-semibold pt-1">
+      <span>To pay</span>
+      <span>₹{{ total }}</span>
+    </div>
+  </div>
+</div>
+
+{% if total > 0 %}
+<div class="bg-white rounded-xl shadow p-5 flex flex-col items-center mb-4">
+  <img src="data:image/png;base64,{{ qr_base64 }}" alt="UPI QR code for ₹{{ total }}" class="w-56 h-56">
+  <p class="text-stone-500 text-sm mt-2">Scan to pay ₹{{ total }} (UPI)</p>
+  {% if whatsapp_url %}
+  <a href="{{ whatsapp_url }}" target="_blank" rel="noopener"
+     class="mt-4 w-full text-center bg-green-700 text-white font-medium rounded-xl py-3 text-sm">
+    Send thanks on WhatsApp
+  </a>
+  {% endif %}
+</div>
+{% else %}
+<div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm mb-4">
+  No payment due.
+</div>
+{% endif %}
+{% endblock %}

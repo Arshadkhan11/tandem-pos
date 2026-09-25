@@ -416,6 +416,28 @@ def billing_tables(request):
 
 
 def billing_detail(request, order_id):
+    """Staff-only bill review: line items, discount controls. Never shown to the customer."""
+    if not _require_role(request, "waiter"):
+        return redirect("role_login", role="waiter")
+    order = get_object_or_404(Order, pk=order_id, status=Order.STATUS_OPEN)
+    subtotal = order.subtotal_amount()
+    discount_percent = order.discount_percent or Decimal("0")
+    discount = order.discount_rupees()
+    total = order.total_amount()
+
+    return render(request, "orders/billing_detail.html", {
+        "order": order,
+        "subtotal": subtotal,
+        "discount_percent": discount_percent,
+        "discount_choices": [Decimal("5.00"), Decimal("10.00"), Decimal("15.00")],
+        "discount": discount,
+        "total": total,
+        "staff_name": _staff_name(request),
+    })
+
+
+def billing_pay(request, order_id):
+    """Customer-facing pay screen: total + QR only, no discount or close controls."""
     if not _require_role(request, "waiter"):
         return redirect("role_login", role="waiter")
     order = get_object_or_404(Order, pk=order_id, status=Order.STATUS_OPEN)
@@ -425,24 +447,24 @@ def billing_detail(request, order_id):
     total = order.total_amount()
     upi_id, payee_name = _upi_payee()
 
-    upi_uri = (
-        f"upi://pay?pa={upi_id}&pn={payee_name}"
-        f"&am={total}&cu=INR&tn=Order{order.id}"
-    )
-    qr_img = qrcode.make(upi_uri)
-    buf = BytesIO()
-    qr_img.save(buf, format="PNG")
-    qr_base64 = base64.b64encode(buf.getvalue()).decode()
+    qr_base64 = ""
+    if total > 0:
+        upi_uri = (
+            f"upi://pay?pa={upi_id}&pn={payee_name}"
+            f"&am={total}&cu=INR&tn=Order{order.id}"
+        )
+        qr_img = qrcode.make(upi_uri)
+        buf = BytesIO()
+        qr_img.save(buf, format="PNG")
+        qr_base64 = base64.b64encode(buf.getvalue()).decode()
 
-    return render(request, "orders/billing_detail.html", {
+    return render(request, "orders/billing_pay.html", {
         "order": order,
         "subtotal": subtotal,
         "discount_percent": discount_percent,
-        "discount_choices": [Decimal("5.00"), Decimal("10.00"), Decimal("15.00")],
         "discount": discount,
         "total": total,
         "qr_base64": qr_base64,
-        "staff_name": _staff_name(request),
         "whatsapp_url": order.whatsapp_url(
             f"Thanks for visiting Tandem! Your bill for {order.table} was ₹{total}."
         ),
