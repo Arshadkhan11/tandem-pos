@@ -76,39 +76,14 @@
   </form>
   <p class="text-stone-400 text-xs mt-2">Or tap another % to switch (5 → 10 → 15).</p>
   {% else %}
-  <p class="text-stone-400 text-xs">Tap 5%, 10%, or 15% before Cash / UPI. Optional.</p>
+  <p class="text-stone-400 text-xs">Tap 5%, 10%, or 15% before continuing. Optional.</p>
   {% endif %}
 </div>
 
-{% if total > 0 %}
 <a href="{% url 'billing_pay' order.id %}"
    class="block w-full text-center bg-red-900 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-red-950 mb-4">
-  Show bill to customer — ₹{{ total }}
+  Continue to bill — ₹{{ total }}
 </a>
-{% else %}
-<div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm mb-4">
-  100% discount — payable is ₹0. Close with Cash or UPI to free the table (counts as a ₹0 bill).
-</div>
-{% endif %}
-
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-  <form method="post" action="{% url 'close_order' order.id %}">
-    {% csrf_token %}
-    <input type="hidden" name="payment_method" value="cash">
-    <button class="w-full bg-stone-800 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-stone-900">
-      Cash received — ₹{{ total }}
-    </button>
-  </form>
-  <form method="post" action="{% url 'close_order' order.id %}">
-    {% csrf_token %}
-    <input type="hidden" name="payment_method" value="upi">
-    <button class="w-full bg-red-900 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-red-950">
-      UPI received — ₹{{ total }}
-    </button>
-  </form>
-</div>
-{% if order.customer_phone and order.marketing_opt_in %}
-<p class="text-stone-400 text-xs text-center mt-2">Closing will also try a thank-you SMS (best-effort).</p>
-{% endif %}
+<p class="text-stone-400 text-xs text-center -mt-2">Next: show the bill to the customer and take payment.</p>
 {% endif %}
 {% endblock %}

@@ -173,17 +173,19 @@ class BillingUpiTests(TestCase):
         self.assertEqual(r.context["total"], Decimal("120.00"))
 
     def test_billing_detail_has_no_qr_or_discount_buttons_for_customer(self):
-        """Staff bill-review screen must never show the QR/pay flow — only a handoff link."""
+        """Staff bill-review screen must never show the QR/pay flow, nor the closing buttons."""
         c = Client()
         c.force_login(self.waiter)
         r = c.get(reverse("billing_detail", args=[self.order.id]))
         self.assertEqual(r.status_code, 200)
         self.assertNotIn("qr_base64", r.context)
         self.assertNotIn("data:image/png;base64,", r.content.decode())
-        self.assertContains(r, "Show bill to customer")
+        self.assertContains(r, "Continue to bill")
+        self.assertNotContains(r, "Cash received")
+        self.assertNotContains(r, "UPI received")
 
-    def test_billing_pay_screen_has_qr_but_no_discount_controls(self):
-        """Customer-facing pay screen shows the QR and total, never the discount buttons."""
+    def test_billing_pay_screen_has_qr_and_close_buttons_but_no_discount_controls(self):
+        """Customer-facing final bill shows the QR + close buttons, never the discount buttons."""
         c = Client()
         c.force_login(self.waiter)
         r = c.get(reverse("billing_pay", args=[self.order.id]))
@@ -191,6 +193,8 @@ class BillingUpiTests(TestCase):
         self.assertEqual(r.context["total"], Decimal("120.00"))
         self.assertTrue(r.context["qr_base64"])
         self.assertIn("data:image/png;base64,", r.content.decode())
+        self.assertContains(r, "Cash received")
+        self.assertContains(r, "UPI received")
         self.assertNotContains(r, "Discount (optional)")
         self.assertNotContains(r, "set_discount")
 
@@ -253,7 +257,7 @@ class BillingUpiTests(TestCase):
         c.force_login(self.waiter)
         r = c.post(reverse("close_order", args=[self.order.id]))
         self.assertEqual(r.status_code, 302)
-        self.assertEqual(r.url, reverse("billing_detail", args=[self.order.id]))
+        self.assertEqual(r.url, reverse("billing_pay", args=[self.order.id]))
         self.order.refresh_from_db()
         self.assertEqual(self.order.status, Order.STATUS_OPEN)
 
