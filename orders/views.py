@@ -529,7 +529,7 @@ def close_order(request, order_id):
     method = (request.POST.get("payment_method") or "").strip().lower()
     if method not in (Order.PAYMENT_CASH, Order.PAYMENT_UPI):
         messages.error(request, "Choose Cash or UPI to close the bill.")
-        return redirect("billing_detail", order_id=order.id)
+        return redirect("billing_pay", order_id=order.id)
 
     order.status = Order.STATUS_CLOSED
     order.closed_at = timezone.now()
