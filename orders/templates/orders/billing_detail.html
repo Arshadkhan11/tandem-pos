@@ -81,16 +81,10 @@
 </div>
 
 {% if total > 0 %}
-<div class="bg-white rounded-xl shadow p-5 flex flex-col items-center mb-4">
-  <img src="data:image/png;base64,{{ qr_base64 }}" alt="UPI QR code for ₹{{ total }}" class="w-56 h-56">
-  <p class="text-stone-500 text-sm mt-2">Scan to pay ₹{{ total }} (UPI)</p>
-  {% if whatsapp_url %}
-  <a href="{{ whatsapp_url }}" target="_blank" rel="noopener"
-     class="mt-4 w-full text-center bg-green-700 text-white font-medium rounded-xl py-3 text-sm">
-    Send thanks on WhatsApp
-  </a>
-  {% endif %}
-</div>
+<a href="{% url 'billing_pay' order.id %}"
+   class="block w-full text-center bg-red-900 text-amber-50 text-lg font-medium rounded-xl py-3 active:bg-red-950 mb-4">
+  Show bill to customer — ₹{{ total }}
+</a>
 {% else %}
 <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl px-4 py-3 text-sm mb-4">
   100% discount — payable is ₹0. Close with Cash or UPI to free the table (counts as a ₹0 bill).
