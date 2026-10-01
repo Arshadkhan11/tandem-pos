@@ -33,7 +33,10 @@ DEBUG = _env_bool("DEBUG", False)
 
 ALLOWED_HOSTS = [
     h.strip()
-    for h in _env("ALLOWED_HOSTS", "app.tandemretreat.com").split(",")
+    for h in _env(
+        "ALLOWED_HOSTS",
+        "app.tandemretreat.com,tandemretreat.com,www.tandemretreat.com",
+    ).split(",")
     if h.strip()
 ]
 # So local runserver still accepts requests when DEBUG=True without editing ALLOWED_HOSTS.
@@ -52,7 +55,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_ckeditor_5",
     "orders.apps.OrdersConfig",
+    "blog.apps.BlogConfig",
 ]
 
 MIDDLEWARE = [
@@ -66,7 +71,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "tandem.urls"
+ROOT_URLCONF = _env("ROOT_URLCONF", "tandem.urls")
 
 TEMPLATES = [
     {
@@ -151,7 +156,8 @@ CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in _env(
         "CSRF_TRUSTED_ORIGINS",
-        "https://app.tandemretreat.com,http://127.0.0.1:8000,http://localhost:8000",
+        "https://app.tandemretreat.com,https://tandemretreat.com,https://www.tandemretreat.com,"
+        "http://127.0.0.1:8000,http://localhost:8000",
     ).split(",")
     if origin.strip()
 ]
@@ -182,5 +188,33 @@ SMS_THANKYOU = _env(
 MAILERS = {
     "default": {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
+    },
+}
+
+# Blog post editor (django-ckeditor-5) — a clean, Medium-style writing toolbar.
+CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+CKEDITOR_5_CONFIGS = {
+    "default": {
+        "toolbar": [
+            "heading", "|",
+            "bold", "italic", "link", "blockQuote", "|",
+            "bulletedList", "numberedList", "|",
+            "insertImage", "mediaEmbed", "|",
+            "undo", "redo",
+        ],
+        "image": {
+            "toolbar": [
+                "imageTextAlternative", "|",
+                "imageStyle:alignLeft", "imageStyle:alignCenter", "imageStyle:alignRight",
+            ],
+            "styles": ["alignLeft", "alignCenter", "alignRight"],
+        },
+        "heading": {
+            "options": [
+                {"model": "paragraph", "title": "Paragraph", "class": "ck-heading_paragraph"},
+                {"model": "heading2", "view": "h2", "title": "Heading", "class": "ck-heading_heading2"},
+                {"model": "heading3", "view": "h3", "title": "Subheading", "class": "ck-heading_heading3"},
+            ]
+        },
     },
 }

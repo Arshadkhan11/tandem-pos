@@ -1,0 +1,38 @@
+{% extends "blog/base_site.html" %}
+{% load static %}
+{% block content %}
+<section class="bg-red-900 text-amber-50 px-4 py-20 flex flex-col items-center text-center">
+  <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-20 w-auto object-contain mb-6">
+  <h1 class="font-brand text-2xl sm:text-3xl tracking-[0.15em] uppercase mb-3">Opening Soon</h1>
+  <p class="font-serif-brand text-lg italic text-amber-100 max-w-md">
+    A restaurant and destination on Nandi Hills, Bengaluru.
+  </p>
+  <p class="text-amber-100/80 text-sm mt-6 max-w-sm">
+    We're putting the finishing touches on Tandem. While you wait, read about
+    Nandi Hills and what to do when you visit.
+  </p>
+</section>
+
+{% if latest_posts %}
+<section class="max-w-5xl mx-auto px-4 py-12">
+  <h2 class="font-brand text-sm tracking-[0.2em] uppercase text-stone-500 mb-6 text-center">From the blog</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    {% for post in latest_posts %}
+    <a href="{{ post.get_absolute_url }}" class="block group">
+      {% if post.cover_image %}
+      <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
+           class="w-full h-40 object-cover rounded-xl mb-3">
+      {% endif %}
+      <h3 class="font-serif-brand text-lg font-medium group-hover:underline">{{ post.title }}</h3>
+      {% if post.excerpt %}
+      <p class="text-stone-500 text-sm mt-1">{{ post.excerpt }}</p>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  <div class="text-center mt-8">
+    <a href="{% url 'post_list' %}" class="text-red-900 font-medium underline">Read more on the blog →</a>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

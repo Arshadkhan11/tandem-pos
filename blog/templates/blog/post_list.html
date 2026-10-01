@@ -1,0 +1,42 @@
+{% extends "blog/base_site.html" %}
+{% block title %}Blog — Tandem{% endblock %}
+{% block content %}
+<section class="max-w-5xl mx-auto px-4 py-12">
+  <h1 class="font-brand text-2xl tracking-[0.1em] uppercase text-stone-800 mb-8 text-center">The Tandem Blog</h1>
+
+  {% if page_obj.object_list %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    {% for post in page_obj %}
+    <a href="{{ post.get_absolute_url }}" class="block group">
+      {% if post.cover_image %}
+      <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
+           class="w-full h-44 object-cover rounded-xl mb-3">
+      {% else %}
+      <div class="w-full h-44 bg-stone-200 rounded-xl mb-3"></div>
+      {% endif %}
+      <h2 class="font-serif-brand text-xl font-medium leading-snug group-hover:underline">{{ post.title }}</h2>
+      {% if post.excerpt %}
+      <p class="text-stone-500 text-sm mt-2">{{ post.excerpt }}</p>
+      {% endif %}
+      <p class="text-stone-400 text-xs mt-2">
+        {{ post.published_at|date:"M j, Y" }} · {{ post.reading_time_minutes }} min read
+      </p>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="flex justify-center gap-4 mt-10 text-sm">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="text-red-900 underline">← Newer</a>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="text-red-900 underline">Older →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <p class="text-stone-400 text-center">No posts yet — check back soon.</p>
+  {% endif %}
+</section>
+{% endblock %}

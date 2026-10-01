@@ -1,0 +1,41 @@
+{% extends "blog/base_site.html" %}
+{% block title %}{{ post.title }} — Tandem Blog{% endblock %}
+{% block meta_description %}{{ post.meta_description|default:post.excerpt }}{% endblock %}
+{% block content %}
+<article>
+  {% if post.cover_image %}
+  <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
+       class="w-full max-h-[420px] object-cover">
+  {% endif %}
+
+  <div class="max-w-2xl mx-auto px-4 py-10">
+    <h1 class="font-brand text-3xl sm:text-4xl leading-tight text-stone-900 mb-4">{{ post.title }}</h1>
+    <p class="text-stone-500 text-sm mb-8">
+      {% if post.author %}{{ post.author.get_full_name|default:post.author.username }} · {% endif %}
+      {{ post.published_at|date:"F j, Y" }} · {{ post.reading_time_minutes }} min read
+    </p>
+
+    <div class="prose prose-stone max-w-none prose-img:rounded-xl prose-a:text-red-900">
+      {{ post.body|safe }}
+    </div>
+  </div>
+</article>
+
+{% if related_posts %}
+<section class="bg-stone-100 border-t border-stone-200">
+  <div class="max-w-5xl mx-auto px-4 py-12">
+    <h2 class="font-brand text-sm tracking-[0.2em] uppercase text-stone-500 mb-6 text-center">More to read</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {% for rp in related_posts %}
+      <a href="{{ rp.get_absolute_url }}" class="block group">
+        {% if rp.cover_image %}
+        <img src="{{ rp.cover_image.url }}" alt="{{ rp.title }}" class="w-full h-32 object-cover rounded-xl mb-2">
+        {% endif %}
+        <h3 class="font-serif-brand text-base font-medium group-hover:underline">{{ rp.title }}</h3>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
