@@ -1,22 +1,90 @@
 {% extends "blog/base_site.html" %}
 {% load static %}
+{% block title %}Tandem — A Destination on Nandi Hills{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<style>
+  .hero-gradient {
+    background: radial-gradient(120% 120% at 50% 20%, #7a1f1f 0%, #4a1010 45%, #230808 100%);
+  }
+  .reveal { opacity: 0; transform: translateY(40px); }
+  @keyframes bounce-down {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+  .scroll-cue { animation: bounce-down 2s ease-in-out infinite; }
+</style>
+{% endblock %}
+
+{% block header %}
+<header class="absolute top-0 left-0 right-0 z-20 px-6 py-5 flex items-center justify-between text-amber-50">
+  <a href="{% url 'site_home' %}" class="flex items-center" aria-label="Tandem">
+    <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-8 w-auto object-contain opacity-95">
+  </a>
+  <nav class="flex items-center gap-6 text-xs tracking-[0.2em] uppercase">
+    <a href="{% url 'site_home' %}" class="hover:opacity-70">Home</a>
+    <a href="{% url 'post_list' %}" class="hover:opacity-70">Journal</a>
+  </nav>
+</header>
+{% endblock %}
+
 {% block content %}
-<section class="bg-red-900 text-amber-50 px-4 py-20 flex flex-col items-center text-center">
-  <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-20 w-auto object-contain mb-6">
-  <h1 class="font-brand text-2xl sm:text-3xl tracking-[0.15em] uppercase mb-3">Opening Soon</h1>
-  <p class="font-serif-brand text-lg italic text-amber-100 max-w-md">
-    A restaurant and destination on Nandi Hills, Bengaluru.
+<section class="relative h-screen w-full overflow-hidden hero-gradient flex flex-col items-center justify-center text-center text-amber-50">
+  {# Drop the real file at static/video/hero.mp4 — it will autoplay here. Until then, #}
+  {# the gradient behind it shows through as a tasteful placeholder. #}
+  <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover opacity-70">
+    <source src="{% static 'video/hero.mp4' %}" type="video/mp4">
+  </video>
+  <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50"></div>
+
+  <div class="relative z-10 px-6">
+    <p class="text-xs tracking-[0.35em] uppercase mb-6 opacity-80">Nandi Hills · Bengaluru</p>
+    <h1 class="font-brand text-5xl sm:text-7xl tracking-[0.08em] mb-4">TANDEM</h1>
+    <p class="font-serif-brand italic text-xl sm:text-2xl text-amber-100 mb-8">
+      More than a meal. A destination.
+    </p>
+    <span class="inline-block border border-amber-50/50 rounded-full px-5 py-2 text-xs tracking-[0.25em] uppercase">
+      Opening Soon
+    </span>
+  </div>
+
+  <div class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 text-amber-50/80 flex flex-col items-center gap-1">
+    <span class="text-[10px] tracking-[0.3em] uppercase">Discover</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 4v16m0 0l-6-6m6 6l6-6"/>
+    </svg>
+  </div>
+</section>
+
+<section class="reveal max-w-3xl mx-auto px-6 py-24 text-center">
+  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-red-900 mb-5">The View</h2>
+  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800">
+    Perched above the clouds, Tandem looks out over Nandi Hills as the valley below
+    catches the day's last light.
   </p>
-  <p class="text-amber-100/80 text-sm mt-6 max-w-sm">
-    We're putting the finishing touches on Tandem. While you wait, read about
-    Nandi Hills and what to do when you visit.
+</section>
+
+<section class="reveal bg-stone-100 px-6 py-24 text-center">
+  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-red-900 mb-5">The Table</h2>
+  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 max-w-3xl mx-auto">
+    A menu built for the occasion — gathered, shared, and lingered over.
+  </p>
+</section>
+
+<section class="reveal max-w-3xl mx-auto px-6 py-24 text-center">
+  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-red-900 mb-5">The Evening</h2>
+  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800">
+    As the sun sets over the hills, Tandem turns golden — a destination for the
+    evening, not just dinner.
   </p>
 </section>
 
 {% if latest_posts %}
-<section class="max-w-5xl mx-auto px-4 py-12">
-  <h2 class="font-brand text-sm tracking-[0.2em] uppercase text-stone-500 mb-6 text-center">From the blog</h2>
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+<section class="reveal bg-stone-100 border-t border-stone-200 px-4 py-20">
+  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-stone-500 mb-10 text-center">From the Journal</h2>
+  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
     {% for post in latest_posts %}
     <a href="{{ post.get_absolute_url }}" class="block group">
       {% if post.cover_image %}
@@ -30,9 +98,31 @@
     </a>
     {% endfor %}
   </div>
-  <div class="text-center mt-8">
-    <a href="{% url 'post_list' %}" class="text-red-900 font-medium underline">Read more on the blog →</a>
+  <div class="text-center mt-10">
+    <a href="{% url 'post_list' %}" class="text-red-900 font-medium underline">Read more on the Journal →</a>
   </div>
 </section>
 {% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.gsap && window.ScrollTrigger) {
+      gsap.registerPlugin(ScrollTrigger);
+      document.querySelectorAll('.reveal').forEach(function (el) {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 80%' },
+        });
+      });
+    } else {
+      document.querySelectorAll('.reveal').forEach(function (el) {
+        el.style.opacity = 1;
+        el.style.transform = 'none';
+      });
+    }
+  });
+</script>
 {% endblock %}

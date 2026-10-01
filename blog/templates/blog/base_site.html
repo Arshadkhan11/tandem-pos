@@ -25,8 +25,10 @@
   .prose :where(h2,h3){ font-family: 'Cinzel', serif; }
   .prose { font-family: 'EB Garamond', Georgia, serif; font-size: 1.2rem; line-height: 1.75; }
 </style>
+{% block extra_head %}{% endblock %}
 </head>
 <body class="bg-stone-50 min-h-screen text-stone-900 flex flex-col">
+  {% block header %}
   <header class="bg-red-900 text-amber-50 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
     <a href="{% url 'site_home' %}" class="flex items-center" aria-label="Tandem">
       <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-9 w-auto object-contain">
@@ -36,6 +38,7 @@
       <a href="{% url 'post_list' %}" class="hover:underline">Blog</a>
     </nav>
   </header>
+  {% endblock %}
   <main class="flex-1 w-full">
     {% block content %}{% endblock %}
   </main>
