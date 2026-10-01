@@ -27,9 +27,9 @@
 </style>
 {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-stone-50 min-h-screen text-stone-900 flex flex-col">
+<body class="bg-[#FBF7EF] min-h-screen text-stone-900 flex flex-col">
   {% block header %}
-  <header class="bg-red-900 text-amber-50 px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
+  <header class="bg-[#2E2419] text-[#EBD2A1] px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
     <a href="{% url 'site_home' %}" class="flex items-center" aria-label="Tandem">
       <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-9 w-auto object-contain">
     </a>
@@ -42,7 +42,7 @@
   <main class="flex-1 w-full">
     {% block content %}{% endblock %}
   </main>
-  <footer class="mt-auto bg-red-900 text-[#EBD2A1] border-t border-[#EBD2A1]/30">
+  <footer class="mt-auto bg-[#2E2419] text-[#EBD2A1] border-t border-[#EBD2A1]/30">
     <div class="max-w-3xl mx-auto px-3 py-3 flex flex-col items-center gap-1 text-center leading-tight">
       <span class="font-brand text-[11px] tracking-[0.22em] uppercase">Gather. Dine. Celebrate.</span>
       <span class="font-serif-brand text-[12px] italic text-[#F5E8C8]">More than a meal. A destination.</span>
