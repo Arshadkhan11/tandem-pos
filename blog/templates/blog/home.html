@@ -10,11 +10,21 @@
     background: radial-gradient(120% 120% at 50% 20%, #F5ECDC 0%, #E0C9A0 45%, #2E2419 100%);
   }
   .reveal { opacity: 0; transform: translateY(40px); }
+  .panel-art { opacity: 0; transform: scale(1.08); }
+  .panel-copy { opacity: 0; transform: translateY(30px); }
   @keyframes bounce-down {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(8px); }
   }
   .scroll-cue { animation: bounce-down 2s ease-in-out infinite; }
+  .ghost-number {
+    font-family: 'Cinzel', serif;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(46, 36, 25, 0.18);
+  }
+  .art-placeholder {
+    background: linear-gradient(150deg, #E0C9A0 0%, #C9AE7E 55%, #8B6F47 100%);
+  }
 </style>
 {% endblock %}
 
@@ -53,27 +63,61 @@
   </div>
 </section>
 
-<section class="reveal max-w-3xl mx-auto px-6 py-24 text-center">
-  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-5">The View</h2>
-  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800">
-    Perched above the clouds, Tandem looks out over Nandi Hills as the valley below
-    catches the day's last light.
-  </p>
+<p class="reveal text-center text-xs tracking-[0.35em] uppercase text-[#8B6F47] pt-16 pb-2">The Journey</p>
+
+{# ---- 01 The Arrival ---- #}
+<section class="relative max-w-5xl mx-auto px-6 py-16 sm:py-24 grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
+  <div class="panel-copy order-2 sm:order-1 relative">
+    <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">01</span>
+    <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Arrival</h2>
+    <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
+      The road climbs through the hills until the city falls away — and Tandem
+      appears, set against the sky.
+    </p>
+  </div>
+  <div class="panel-art order-1 sm:order-2 aspect-[4/5] rounded-2xl art-placeholder"></div>
 </section>
 
-<section class="reveal bg-[#F0E6D2] px-6 py-24 text-center">
-  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-5">The Table</h2>
-  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 max-w-3xl mx-auto">
-    A menu built for the occasion — gathered, shared, and lingered over.
-  </p>
+{# ---- 02 The View ---- #}
+<section class="relative bg-[#F0E6D2] px-6 py-16 sm:py-24">
+  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
+    <div class="panel-art aspect-[4/5] rounded-2xl art-placeholder"></div>
+    <div class="panel-copy relative">
+      <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">02</span>
+      <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The View</h2>
+      <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
+        Perched above the clouds, Tandem looks out over Nandi Hills as the valley
+        below catches the day's last light.
+      </p>
+    </div>
+  </div>
 </section>
 
-<section class="reveal max-w-3xl mx-auto px-6 py-24 text-center">
-  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-5">The Evening</h2>
-  <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800">
-    As the sun sets over the hills, Tandem turns golden — a destination for the
-    evening, not just dinner.
-  </p>
+{# ---- 03 The Table ---- #}
+<section class="relative max-w-5xl mx-auto px-6 py-16 sm:py-24 grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
+  <div class="panel-copy order-2 sm:order-1 relative">
+    <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">03</span>
+    <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Table</h2>
+    <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
+      A menu built for the occasion — gathered, shared, and lingered over.
+    </p>
+  </div>
+  <div class="panel-art order-1 sm:order-2 aspect-[4/5] rounded-2xl art-placeholder"></div>
+</section>
+
+{# ---- 04 The Evening ---- #}
+<section class="relative bg-[#F0E6D2] px-6 py-16 sm:py-24">
+  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
+    <div class="panel-art aspect-[4/5] rounded-2xl art-placeholder"></div>
+    <div class="panel-copy relative">
+      <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">04</span>
+      <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Evening</h2>
+      <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
+        As the sun sets over the hills, Tandem turns golden — a destination for
+        the evening, not just dinner.
+      </p>
+    </div>
+  </div>
 </section>
 
 {% if latest_posts %}
@@ -109,11 +153,30 @@
           y: 0,
           duration: 1,
           ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 80%' },
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+        });
+      });
+      document.querySelectorAll('.panel-art').forEach(function (el) {
+        gsap.to(el, {
+          opacity: 1,
+          scale: 1,
+          duration: 1.3,
+          ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%' },
+        });
+      });
+      document.querySelectorAll('.panel-copy').forEach(function (el) {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          ease: 'power2.out',
+          delay: 0.15,
+          scrollTrigger: { trigger: el, start: 'top 85%' },
         });
       });
     } else {
-      document.querySelectorAll('.reveal').forEach(function (el) {
+      document.querySelectorAll('.reveal, .panel-art, .panel-copy').forEach(function (el) {
         el.style.opacity = 1;
         el.style.transform = 'none';
       });
