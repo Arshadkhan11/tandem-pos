@@ -1,0 +1,109 @@
+title: Tandem Analytics
+description: >-
+  Read-only copy of Tandem's orders, rebuilt every hour. All times are IST.
+  Customer names and phone numbers are not included. Start with the saved
+  queries below, or open any table or view and use filters, facets and the
+  chart button.
+databases:
+  tandem_analytics:
+    description: Orders, items, menu and staff, plus ready-made summary views.
+    tables:
+      orders:
+        description: >-
+          One row per bill. total is what the guest paid after discount.
+          Use status = closed for revenue (open bills are still being served).
+          customer_id is an anonymous hash, so repeat visits can be counted.
+        sort_desc: id
+      order_items:
+        description: >-
+          One row per item on a bill, with the kitchen note and how many
+          minutes the kitchen took (kitchen_minutes).
+        sort_desc: id
+      menu_items:
+        description: The menu and current prices.
+      dining_tables:
+        description: The restaurant's tables.
+      staff:
+        description: Staff names and roles.
+      refresh_info:
+        description: When this copy was last rebuilt, and how much data it holds.
+      daily_sales:
+        description: One row per day - bills, revenue, cash vs UPI, discounts, average bill.
+      hourly_sales:
+        description: Bills and revenue by hour of day (IST) - shows the busy hours.
+      weekday_sales:
+        description: Bills and revenue by day of the week.
+      item_sales:
+        description: How many of each item were sold, best sellers first.
+      waiter_performance:
+        description: Bills, revenue and discounts given per waiter.
+      kitchen_speed:
+        description: Average and slowest kitchen time per item.
+      payment_split:
+        description: Cash vs UPI.
+      repeat_customers:
+        description: Anonymous customers who gave a phone number, with visit counts.
+    queries:
+      today:
+        title: Today so far
+        description: Bills and revenue for today (IST).
+        sql: |-
+          select * from daily_sales
+          where date = date('now', '+5 hours', '+30 minutes')
+      last_7_days:
+        title: Last 7 days
+        description: Daily bills, revenue, cash vs UPI and discounts.
+        sql: |-
+          select * from daily_sales limit 7
+      top_items_30_days:
+        title: Top 20 items (last 30 days)
+        description: Best sellers by quantity, before discounts.
+        sql: |-
+          select item_name, category_label,
+                 sum(quantity) as qty_sold,
+                 round(sum(line_total), 2) as gross_revenue
+          from order_items
+          where order_status = 'closed'
+            and date_ist >= date('now', '+5 hours', '+30 minutes', '-30 days')
+          group by menu_item_id
+          order by qty_sold desc
+          limit 20
+      busiest_hours:
+        title: Busiest hours
+        description: Bills and revenue by hour of day.
+        sql: |-
+          select * from hourly_sales
+      cash_vs_upi_30_days:
+        title: Cash vs UPI (last 30 days)
+        description: How guests paid.
+        sql: |-
+          select payment_method, count(*) as bills, round(sum(total), 2) as revenue
+          from orders
+          where status = 'closed'
+            and date_ist >= date('now', '+5 hours', '+30 minutes', '-30 days')
+          group by payment_method
+      waiters:
+        title: Waiter performance
+        description: Revenue, average bill and discounts given per waiter.
+        sql: |-
+          select * from waiter_performance
+      slowest_items:
+        title: Slowest items in the kitchen
+        description: Items with at least 3 orders, slowest first.
+        sql: |-
+          select * from kitchen_speed where items >= 3 limit 20
+      popular_notes:
+        title: Most common kitchen notes
+        description: What guests ask for (spicy, less sugar, ...).
+        sql: |-
+          select lower(note) as note, count(*) as times
+          from order_items
+          where note is not null
+          group by lower(note)
+          order by times desc
+          limit 25
+      repeat_guests:
+        title: Repeat guests
+        description: Anonymous customers who visited more than once.
+        sql: |-
+          select * from repeat_customers where visits > 1

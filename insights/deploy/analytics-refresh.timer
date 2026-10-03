@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly refresh of the Tandem analytics database
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=120
+
+[Install]
+WantedBy=timers.target

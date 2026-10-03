@@ -1,0 +1,13 @@
+[Unit]
+Description=Rebuild the sanitized analytics database from Tandem's live data
+
+[Service]
+Type=oneshot
+User=tandem
+Group=tandem
+WorkingDirectory=/opt/tandem
+ExecStart=/usr/bin/python3 /opt/tandem/insights/build_analytics_db.py \
+    --src /opt/tandem/db.sqlite3 \
+    --dest /opt/analytics/data/tandem_analytics.db \
+    --salt-file /opt/analytics/secret/phone_salt
+ExecStartPost=+/bin/systemctl try-restart analytics-datasette.service
