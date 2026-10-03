@@ -342,3 +342,25 @@ class WriterGuideTests(TestCase):
         p.feed(self.client_for(self.owner).get(reverse("writer_guide")).content.decode())
         self.assertEqual(p.errors, [])
         self.assertEqual(p.stack, [])
+
+
+@override_settings(**TEST_SETTINGS)
+class StaleLoginFormTests(TestCase):
+    """A stale/expired login form must give a friendly retry, never a server error."""
+
+    def test_stale_admin_login_form_reloads_the_page_with_a_message(self):
+        c = Client(enforce_csrf_checks=True)
+        url = reverse("admin:login") + "?next=/django-admin/blog/post/"
+        r = c.post(url, {"username": "nobody", "password": "x"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r["Location"], url)
+        again = c.get(r["Location"])
+        self.assertEqual(again.status_code, 200)
+        self.assertContains(again, "Session expired")
+
+    @override_settings(ROOT_URLCONF="tandem.urls")
+    def test_restaurant_app_still_redirects_stale_logins_to_its_own_login_page(self):
+        c = Client(enforce_csrf_checks=True)
+        r = c.post("/login/chef/", {"username": "nobody", "password": "x"})
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r["Location"], "/login/chef/")
