@@ -90,3 +90,23 @@ class PostAdminTests(TestCase):
         )
         post = Post.objects.get(title="New Post")
         self.assertEqual(post.author, staff)
+
+
+class StaticReferenceTests(TestCase):
+    """A {% static %} tag pointing at a missing file crashes the page in production
+    (ManifestStaticFilesStorage raises). Catch that before it ships."""
+
+    def test_every_static_reference_in_templates_exists(self):
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+        from django.contrib.staticfiles import finders
+
+        pattern = re.compile(r"""{%\s*static\s+['"]([^'"]+)['"]\s*%}""")
+        missing = []
+        for template in Path(settings.BASE_DIR).glob("*/templates/**/*.html"):
+            for ref in pattern.findall(template.read_text()):
+                if finders.find(ref) is None:
+                    missing.append(f"{template.relative_to(settings.BASE_DIR)} -> {ref}")
+        self.assertEqual(missing, [], "templates reference static files that do not exist")

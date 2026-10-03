@@ -3,184 +3,170 @@
 {% block title %}Tandem — A Destination on Nandi Hills{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<style>
-  .hero-gradient {
-    background: radial-gradient(120% 120% at 50% 20%, #F5ECDC 0%, #E0C9A0 45%, #2E2419 100%);
+<link rel="stylesheet" href="{% static 'blog/tandem.css' %}">
+<script>
+  /* Enable the hidden-until-animated states only when motion is allowed.
+     tandem.js removes this class again if the animation libraries fail to load. */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('motion');
   }
-  .reveal { opacity: 0; transform: translateY(40px); }
-  .panel-art { opacity: 0; transform: scale(1.08); }
-  .panel-copy { opacity: 0; transform: translateY(30px); }
-  @keyframes bounce-down {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(8px); }
-  }
-  .scroll-cue { animation: bounce-down 2s ease-in-out infinite; }
-  .ghost-number {
-    font-family: 'Cinzel', serif;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(46, 36, 25, 0.18);
-  }
-  .art-placeholder {
-    background: linear-gradient(150deg, #E0C9A0 0%, #C9AE7E 55%, #8B6F47 100%);
-  }
-</style>
+</script>
 {% endblock %}
 
+{% block body_class %}tm{% endblock %}
+
 {% block header %}
-<header class="absolute top-0 left-0 right-0 z-20 px-6 py-5 flex items-center justify-between text-[#2E2419]">
-  <a href="{% url 'site_home' %}" class="font-brand text-sm tracking-[0.2em]" aria-label="Tandem">TANDEM</a>
-  <nav class="flex items-center gap-6 text-xs tracking-[0.2em] uppercase">
-    <a href="{% url 'site_home' %}" class="hover:opacity-70">Home</a>
-    <a href="{% url 'post_list' %}" class="hover:opacity-70">Journal</a>
-  </nav>
-</header>
+<div class="tm-progress" aria-hidden="true"><i></i></div>
+<nav class="tm-nav" aria-label="Main">
+  <a href="{% url 'site_home' %}" aria-label="Tandem home"><img src="{% static 'logo-full.png' %}" alt="Tandem"></a>
+  <ul>
+    <li class="hide-sm"><a class="link" href="#story">Story</a></li>
+    <li class="hide-sm"><a class="link" href="#menu">Menu</a></li>
+    <li><a class="link" href="{% url 'post_list' %}">Journal</a></li>
+    <li class="hide-sm"><span class="tm-pill">Opening soon</span></li>
+  </ul>
+</nav>
 {% endblock %}
 
 {% block content %}
-<section class="relative h-screen w-full overflow-hidden hero-gradient flex flex-col items-center justify-center text-center text-amber-50">
-  {# Once a real hero video exists at static/video/hero.mp4, re-add a <video> tag here #}
-  {# (referencing it via {% static %} before the file exists breaks collectstatic's manifest). #}
-  {# A video would also need a dark overlay div re-added here for text legibility. #}
-
-  <div class="relative z-10 px-6 text-[#2E2419]">
-    <p class="text-xs tracking-[0.35em] uppercase mb-6 opacity-70">Nandi Hills · Bengaluru</p>
-    <h1 class="font-brand text-5xl sm:text-7xl tracking-[0.08em] mb-4">TANDEM</h1>
-    <p class="font-serif-brand italic text-xl sm:text-2xl mb-8 opacity-90">
-      More than a meal. A destination.
-    </p>
-    <span class="inline-block border border-[#2E2419]/40 rounded-full px-5 py-2 text-xs tracking-[0.25em] uppercase">
-      Opening Soon
-    </span>
+{# ---------- Hero ---------- #}
+<section class="tm-hero" id="top">
+  <div class="tm-hero-bg"></div>
+  <div class="tm-grain"></div>
+  <div class="tm-hero-inner">
+    <p class="tm-label" data-hero>Nandi Hills · Bengaluru</p>
+    <img class="tm-hero-logo" data-hero src="{% static 'logo-full.png' %}" alt="Tandem">
+    <h1 data-hero data-hero-words>More than a meal. A destination.</h1>
+    <span class="tm-pill" data-hero>Opening soon</span>
   </div>
-
-  <div class="scroll-cue absolute bottom-8 left-1/2 -translate-x-1/2 text-[#2E2419]/70 flex flex-col items-center gap-1">
-    <span class="text-[10px] tracking-[0.3em] uppercase">Discover</span>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M12 4v16m0 0l-6-6m6 6l6-6"/>
-    </svg>
+  <div class="tm-cue" data-hero data-hero-o aria-hidden="true">
+    <span></span>
+    <p class="tm-label" style="font-size:.6rem">Scroll</p>
   </div>
 </section>
 
-<p class="reveal text-center text-xs tracking-[0.35em] uppercase text-[#8B6F47] pt-16 pb-2">The Journey</p>
-
-{# ---- 01 The Arrival ---- #}
-<section class="relative max-w-5xl mx-auto px-6 py-16 sm:py-24 grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
-  <div class="panel-copy order-2 sm:order-1 relative">
-    <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">01</span>
-    <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Arrival</h2>
-    <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
-      The road climbs through the hills until the city falls away — and Tandem
-      appears, set against the sky.
-    </p>
-  </div>
-  <div class="panel-art order-1 sm:order-2 aspect-[4/5] rounded-2xl art-placeholder"></div>
+{# ---------- Manifesto ---------- #}
+<section class="tm-manifesto">
+  <p class="tm-label">The idea</p>
+  <span class="tm-rule"></span>
+  <p class="big">Above the clouds of <em>Nandi Hills</em>, a table is waiting — set for the golden hour,
+    the long conversation, and a view that stays with you.</p>
 </section>
 
-{# ---- 02 The View ---- #}
-<section class="relative bg-[#F0E6D2] px-6 py-16 sm:py-24">
-  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
-    <div class="panel-art aspect-[4/5] rounded-2xl art-placeholder"></div>
-    <div class="panel-copy relative">
-      <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">02</span>
-      <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The View</h2>
-      <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
-        Perched above the clouds, Tandem looks out over Nandi Hills as the valley
-        below catches the day's last light.
-      </p>
+{# ---------- Pinned story: four chapters, one sky ---------- #}
+<section id="story">
+  <div class="story-stage">
+    <div class="story-copy">
+      <p class="story-index"><span class="cur">01</span><span class="tot">/ 04</span></p>
+      <div class="story-chapters">
+        <article class="chapter">
+          <h2>The Arrival</h2>
+          <p>The road climbs through the hills until the city falls away — and Tandem appears, set against the sky.</p>
+        </article>
+        <article class="chapter">
+          <h2>The View</h2>
+          <p>Perched above the clouds, Tandem looks out over Nandi Hills as the valley below catches the light.</p>
+        </article>
+        <article class="chapter">
+          <h2>The Table</h2>
+          <p>A menu built for the occasion — gathered, shared, and lingered over.</p>
+        </article>
+        <article class="chapter">
+          <h2>The Evening</h2>
+          <p>As the sun sets over the hills, Tandem turns golden — a destination for the evening, not just dinner.</p>
+        </article>
+      </div>
     </div>
-  </div>
-</section>
 
-{# ---- 03 The Table ---- #}
-<section class="relative max-w-5xl mx-auto px-6 py-16 sm:py-24 grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
-  <div class="panel-copy order-2 sm:order-1 relative">
-    <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">03</span>
-    <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Table</h2>
-    <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
-      A menu built for the occasion — gathered, shared, and lingered over.
-    </p>
-  </div>
-  <div class="panel-art order-1 sm:order-2 aspect-[4/5] rounded-2xl art-placeholder"></div>
-</section>
-
-{# ---- 04 The Evening ---- #}
-<section class="relative bg-[#F0E6D2] px-6 py-16 sm:py-24">
-  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-16 items-center">
-    <div class="panel-art aspect-[4/5] rounded-2xl art-placeholder"></div>
-    <div class="panel-copy relative">
-      <span class="ghost-number absolute -top-10 -left-2 text-7xl sm:text-8xl select-none" aria-hidden="true">04</span>
-      <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-[#2E2419] mb-4 relative">The Evening</h2>
-      <p class="font-serif-brand text-2xl sm:text-3xl leading-snug text-stone-800 relative">
-        As the sun sets over the hills, Tandem turns golden — a destination for
-        the evening, not just dinner.
-      </p>
+    <div class="story-frame" role="img" aria-label="Illustration of the sky over Nandi Hills moving from morning to sunset">
+      {# Placeholder artwork until real photos/footage arrive. To use an image sequence, put #}
+      {# frames at static/blog/seq/frame_0001.jpg ... and set data-count to the number of frames. #}
+      <div class="sky sky-1"></div><div class="sky sky-2"></div><div class="sky sky-3"></div><div class="sky sky-4"></div>
+      <div class="sun"></div>
+      <svg class="ridges" viewBox="0 0 400 310" preserveAspectRatio="none" aria-hidden="true">
+        <path class="ridge" fill="rgba(15,13,11,.32)" d="M0 150 L50 112 L96 138 L150 84 L214 128 L270 96 L330 132 L400 100 L400 430 L0 430 Z"/>
+        <path class="ridge" fill="rgba(15,13,11,.62)" d="M0 196 L58 160 L120 186 L178 142 L246 182 L312 150 L400 190 L400 430 L0 430 Z"/>
+        <path class="ridge" fill="#0f0d0b" d="M0 246 L74 214 L140 238 L214 206 L290 236 L352 214 L400 232 L400 430 L0 430 Z"/>
+      </svg>
+      <canvas id="seq" data-count="0" data-base="{% get_static_prefix %}blog/seq/"></canvas>
+      <p class="tm-caption">Photography coming soon</p>
     </div>
+
+    <div class="story-progress" aria-hidden="true"><b><i></i></b><b><i></i></b><b><i></i></b><b><i></i></b></div>
   </div>
 </section>
 
+{# ---------- Menu strip (horizontal scroll) ---------- #}
+<section id="menu" class="tm-menu">
+  <header>
+    <p class="tm-label">The kitchen</p>
+    <span class="tm-rule"></span>
+    <h2>Everything worth<br>climbing for.</h2>
+  </header>
+  <div class="tm-track">
+    <article class="tm-card"><div class="tile"><span class="num">01</span></div>
+      <h3>Tea &amp; Coffee</h3><p>Strong, hot, and made to linger over.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">02</span></div>
+      <h3>Maggi</h3><p>The hill-station classic, done properly.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">03</span></div>
+      <h3>Sandwiches &amp; Breakfast</h3><p>Slow mornings, fully loaded.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">04</span></div>
+      <h3>Starters</h3><p>Veg and non-veg plates meant for sharing.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">05</span></div>
+      <h3>Fries &amp; Wedges</h3><p>Crisp outside, soft within.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">06</span></div>
+      <h3>Rice, Noodles &amp; Pasta</h3><p>Hearty bowls for hungry hikers.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">07</span></div>
+      <h3>Refreshers</h3><p>Cold, fizzy, and lime-bright.</p></article>
+    <article class="tm-card"><div class="tile"><span class="num">08</span></div>
+      <h3>Ice Creams &amp; Shakes</h3><p>Sweet endings with a view.</p></article>
+  </div>
+</section>
+
+{# ---------- Visit ---------- #}
+<section class="tm-visit">
+  <div class="grid">
+    <div class="reveal"><h3 class="tm-label">Where</h3><span class="tm-rule"></span>
+      <p style="margin-top:1rem">Nandi Hills, Bengaluru<small>Directions shared at launch</small></p></div>
+    <div class="reveal"><h3 class="tm-label">When</h3><span class="tm-rule"></span>
+      <p style="margin-top:1rem">Opening soon<small>Hours announced with the opening</small></p></div>
+    <div class="reveal"><h3 class="tm-label">Reserve</h3><span class="tm-rule"></span>
+      <p style="margin-top:1rem">Reservations open with launch<small>Check back, or follow the Journal</small></p></div>
+  </div>
+</section>
+
+{# ---------- Journal ---------- #}
 {% if latest_posts %}
-<section class="reveal bg-[#F0E6D2] border-t border-[#E5D8BD] px-4 py-20">
-  <h2 class="font-brand text-xs tracking-[0.3em] uppercase text-stone-500 mb-10 text-center">From the Journal</h2>
-  <div class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8">
+<section class="tm-journal">
+  <p class="tm-label reveal" style="text-align:center">From the Journal</p>
+  <div class="grid">
     {% for post in latest_posts %}
-    <a href="{{ post.get_absolute_url }}" class="block group">
-      {% if post.cover_image %}
-      <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
-           class="w-full h-40 object-cover rounded-xl mb-3">
-      {% endif %}
-      <h3 class="font-serif-brand text-lg font-medium group-hover:underline">{{ post.title }}</h3>
-      {% if post.excerpt %}
-      <p class="text-stone-500 text-sm mt-1">{{ post.excerpt }}</p>
-      {% endif %}
-    </a>
+    <article class="reveal">
+      <a href="{{ post.get_absolute_url }}">
+        {% if post.cover_image %}<img src="{{ post.cover_image.url }}" alt="{{ post.title }}">{% endif %}
+        <h3>{{ post.title }}</h3>
+        {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+      </a>
+    </article>
     {% endfor %}
   </div>
-  <div class="text-center mt-10">
-    <a href="{% url 'post_list' %}" class="text-[#2E2419] font-medium underline">Read more on the Journal →</a>
-  </div>
+  <p style="text-align:center"><a class="tm-more tm-label" href="{% url 'post_list' %}">Read the Journal</a></p>
 </section>
 {% endif %}
+{% endblock %}
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (window.gsap && window.ScrollTrigger) {
-      gsap.registerPlugin(ScrollTrigger);
-      document.querySelectorAll('.reveal').forEach(function (el) {
-        gsap.to(el, {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        });
-      });
-      document.querySelectorAll('.panel-art').forEach(function (el) {
-        gsap.to(el, {
-          opacity: 1,
-          scale: 1,
-          duration: 1.3,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        });
-      });
-      document.querySelectorAll('.panel-copy').forEach(function (el) {
-        gsap.to(el, {
-          opacity: 1,
-          y: 0,
-          duration: 1,
-          ease: 'power2.out',
-          delay: 0.15,
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        });
-      });
-    } else {
-      document.querySelectorAll('.reveal, .panel-art, .panel-copy').forEach(function (el) {
-        el.style.opacity = 1;
-        el.style.transform = 'none';
-      });
-    }
-  });
-</script>
+{% block footer %}
+<footer class="tm-footer">
+  <img src="{% static 'logo-full.png' %}" alt="Tandem">
+  <p class="tm-label">Gather. Dine. Celebrate.</p>
+  <p>More than a meal. A destination.</p>
+  <p style="font-size:.9rem">Nandi Hills, Bengaluru</p>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
+<script src="{% static 'blog/tandem.js' %}"></script>
 {% endblock %}

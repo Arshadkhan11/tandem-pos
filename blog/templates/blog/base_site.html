@@ -27,7 +27,7 @@
 </style>
 {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-[#FBF7EF] min-h-screen text-stone-900 flex flex-col">
+<body class="{% block body_class %}bg-[#FBF7EF] text-stone-900{% endblock %} min-h-screen flex flex-col">
   {% block header %}
   <header class="bg-[#2E2419] text-[#EBD2A1] px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
     <a href="{% url 'site_home' %}" class="flex items-center" aria-label="Tandem">
@@ -42,6 +42,7 @@
   <main class="flex-1 w-full">
     {% block content %}{% endblock %}
   </main>
+  {% block footer %}
   <footer class="mt-auto bg-[#2E2419] text-[#EBD2A1] border-t border-[#EBD2A1]/30">
     <div class="max-w-3xl mx-auto px-3 py-3 flex flex-col items-center gap-1 text-center leading-tight">
       <span class="font-brand text-[11px] tracking-[0.22em] uppercase">Gather. Dine. Celebrate.</span>
@@ -49,5 +50,7 @@
       <span class="font-serif-brand text-[10px] text-[#EBD2A1]/70 tracking-wide">Nandi Hills, Bengaluru</span>
     </div>
   </footer>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>
