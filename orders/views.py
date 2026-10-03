@@ -10,6 +10,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
@@ -92,7 +93,12 @@ def csrf_failure(request, reason=""):
     parts = path.split("/")
     if len(parts) >= 2 and parts[0] == "login" and parts[1] in settings.STAFF_ROLES:
         role = parts[1]
-    return redirect("role_login", role=role)
+    try:
+        return redirect(reverse("role_login", kwargs={"role": role}))
+    except NoReverseMatch:
+        # The public marketing site has no staff-app login page: reload the same page
+        # so the visitor gets a fresh form instead of a server error.
+        return redirect(request.get_full_path())
 
 
 # ---------- username / password login ----------
