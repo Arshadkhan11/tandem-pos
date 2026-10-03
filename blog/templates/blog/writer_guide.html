@@ -1,0 +1,222 @@
+{% extends "blog/base_site.html" %}
+{% block title %}The Tandem Writer's Guide{% endblock %}
+{% block meta_description %}How to write, polish and publish a post on the Tandem Journal.{% endblock %}
+{% block extra_head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block progress %}<div class="ar-progress" aria-hidden="true"><i></i></div>{% endblock %}
+
+{% block content %}
+<article class="gd">
+  <header class="ar" style="padding-bottom:0">
+    <p class="tm-label">For writers</p>
+    <h1 class="ar-title" style="margin-top:1rem">The Tandem Writer's Guide</h1>
+    <p class="ar-deck">Everything you need to write, polish and publish a post, even if it is your first one.</p>
+  </header>
+
+  <div class="ar" style="padding-top:2rem;padding-bottom:0">
+    <div class="ar-body">
+
+      <div class="callout">
+        <strong>The 5-minute version</strong>
+        <ol>
+          <li>Sign in at <strong>tandemretreat.com/write</strong> (bookmark it) and click <strong>Add post</strong>.</li>
+          <li>Type the <strong>Title</strong>, then write the <strong>Story</strong>.</li>
+          <li>Add a <strong>cover image</strong> and describe it.</li>
+          <li>Fill in <strong>Google and sharing</strong> (title, description, main keyword).</li>
+          <li>Save as <strong>Draft</strong>, click <strong>Open the post</strong> to preview, then set <strong>Published</strong> and save.</li>
+        </ol>
+      </div>
+
+      <nav class="toc" aria-label="On this page">
+        <p class="tm-label">On this page</p>
+        <ol>
+          <li><a href="#signin">Sign in and find your way around</a></li>
+          <li><a href="#topic">Choose a topic and a keyword</a></li>
+          <li><a href="#write">Write the post</a></li>
+          <li><a href="#images">Add images</a></li>
+          <li><a href="#seo">The "Google and sharing" section</a></li>
+          <li><a href="#publish">Save, preview and publish</a></li>
+          <li><a href="#rank">What helps a post rank on Google</a></li>
+          <li><a href="#checklist">Before-you-publish checklist</a></li>
+          <li><a href="#fixes">If something goes wrong</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="signin">1. Sign in and find your way around</h2>
+      <ul>
+        <li>Go to <strong>tandemretreat.com/write</strong> and sign in with the username and password you were given. The first time, click <strong>Change password</strong> (top of the page) and choose your own.</li>
+        <li>You will see one section: <strong>Blog → Posts</strong>. That is everything you need. The list shows each post's <strong>State</strong>: <em>Live</em> (visitors can read it), <em>Scheduled</em> (will go live later) or <em>Draft</em> (only signed-in staff can see it).</li>
+        <li>Click <strong>Add post</strong> to start, or click a title to edit an existing post.</li>
+        <li>You will see three save buttons. <strong>Save and continue editing</strong> is the one to use while writing: it saves and keeps you on the page, like pressing Ctrl+S. <strong>Save</strong> saves and returns to the list.</li>
+        <li>You can add and edit posts but not delete them. To take a post down, change its status back to <strong>Draft</strong>.</li>
+      </ul>
+
+      <h2 id="topic">2. Choose a topic and a keyword</h2>
+      <p>Do this before you open the editor. A good post answers one question that real people type into Google.</p>
+      <ol>
+        <li><strong>Think like a visitor.</strong> Someone in Bengaluru is planning a trip to Nandi Hills: <em>How do I get there? When should I leave? Where is the best sunrise view? Where can we eat?</em></li>
+        <li><strong>Pick one main keyword per post.</strong> This is the phrase you want the post to be found for, for example <em>nandi hills sunrise points</em>. One post, one main keyword.</li>
+        <li><strong>Check it on Google.</strong> Type it in. Look at the suggestions that appear as you type and the <em>People also ask</em> box. Open the top results and ask: what do they miss? You win by being more helpful, more local and more up to date.</li>
+        <li><strong>Always include "Nandi Hills".</strong> The word "Tandem" on its own is crowded (there is a famous language app with that name), so aim for phrases visitors actually search, such as <em>things to do near Nandi Hills</em>.</li>
+      </ol>
+      <p><strong>Ten good first posts</strong> (check every fact, such as timings, fees and distances, before you publish):</p>
+      <ol>
+        <li>How to reach Nandi Hills from Bengaluru: routes, timings and parking</li>
+        <li>Nandi Hills sunrise: the best viewpoints and when to arrive</li>
+        <li>The best time to visit Nandi Hills, month by month</li>
+        <li>Things to do near Nandi Hills: a one-day plan</li>
+        <li>A weekend itinerary from Bengaluru</li>
+        <li>Nandi Hills at sunset: where to go</li>
+        <li>Where to eat on Nandi Hills</li>
+        <li>Nearby places worth adding to your trip</li>
+        <li>Nandi Hills for couples, families and photographers</li>
+        <li>Entry rules, timings and what to carry (keep this one updated)</li>
+      </ol>
+
+      <h2 id="write">3. Write the post</h2>
+      <h3>The three boxes at the top</h3>
+      <table>
+        <thead><tr><th>Box</th><th>What to put there</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Title</strong></td><td>The headline readers see. Clear beats clever. Include the main keyword near the start if it reads naturally.</td></tr>
+          <tr><td><strong>Story</strong></td><td>The post itself, written in the editor below.</td></tr>
+          <tr><td><strong>Short summary</strong></td><td>One or two sentences shown under the title and on the Journal page. It is the "why read this" line.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>The editor toolbar</h3>
+      <ul>
+        <li><strong>Paragraph ▾</strong>: choose <em>Heading</em> for a section title or <em>Subheading</em> for a smaller one inside a section. Use headings to break up the text.</li>
+        <li><strong>B</strong> and <strong><em>I</em></strong>: bold and italic. Use sparingly, for key facts only.</li>
+        <li><strong>Link</strong>: select some words, click the link button, paste the web address and press Enter.</li>
+        <li><strong>Quote</strong>: for a standout line or a guest's words.</li>
+        <li><strong>Bulleted and numbered lists</strong>: perfect for timings, what to carry, and step-by-step directions.</li>
+        <li><strong>Image</strong> and <strong>media</strong> buttons: see Part 4. The media button embeds a YouTube video when you paste its link.</li>
+        <li><strong>Undo / Redo</strong>: made a mistake? Press Ctrl+Z (Cmd+Z on a Mac). The word count is shown under the editor.</li>
+      </ul>
+      <p><strong>Writing in Google Docs or Word first?</strong> Paste with <strong>Ctrl+Shift+V</strong> (Cmd+Shift+V on a Mac), which pastes plain text. Then add headings and bold here so the formatting stays clean.</p>
+
+      <h3>A simple structure that works</h3>
+      <ol>
+        <li><strong>Opening (2–3 sentences).</strong> Say what the reader will get, and use your main keyword in the first paragraph.</li>
+        <li><strong>3–6 sections</strong>, each with a Heading that answers a question (for example <em>"What time should we leave Bengaluru?"</em>).</li>
+        <li><strong>A practical-info list</strong>: timings, distance, parking, what to carry.</li>
+        <li><strong>A short Q&amp;A</strong> with the two or three things people always ask.</li>
+        <li><strong>A warm closing</strong> with a gentle invitation, such as "After the viewpoint, come hungry: a table at Tandem is a short walk away." Be helpful first and promotional second.</li>
+      </ol>
+
+      <h3>Writing tips</h3>
+      <ul>
+        <li><strong>Short paragraphs</strong> (2–4 lines). Most readers are on phones.</li>
+        <li><strong>Be specific and first-hand.</strong> "We reached at 5:40 am and the east viewpoint was empty" beats "go early for good views".</li>
+        <li>Use plain words, one idea per paragraph, and read it aloud before publishing.</li>
+        <li><strong>Link to other Tandem pages</strong> using natural words, such as "our guide to the best sunrise points", never "click here".</li>
+        <li>Only state prices, timings and rules you have confirmed. If unsure, leave it out.</li>
+      </ul>
+
+      <h2 id="images">4. Add images</h2>
+      <h3>The cover image (shown at the top and in lists)</h3>
+      <ol>
+        <li>Scroll to the <strong>Cover image</strong> section and click <strong>Choose file</strong>.</li>
+        <li>In <strong>Cover image description</strong>, describe the picture in a sentence, for example <em>"Golden sunrise over the hills from the Nandi Hills viewpoint"</em>.</li>
+      </ol>
+      <h3>Pictures inside the story</h3>
+      <ol>
+        <li>Click in the text where the picture should go.</li>
+        <li>Click the <strong>image button</strong> in the toolbar and upload from your computer. You can also drag a file into the editor or paste a copied image.</li>
+        <li><strong>Click the picture</strong>. A small toolbar appears. Use <strong>Change image text alternative</strong> to describe the picture (this is the "alt text"), and the alignment buttons to place it.</li>
+      </ol>
+      <h3>Rules for images</h3>
+      <ul>
+        <li><strong>Only use pictures that are yours</strong>, that Tandem owns, or that carry a free licence with credit given. Never copy pictures from Google, Instagram or other blogs. Ask permission before featuring people you can recognise.</li>
+        <li><strong>Types and size:</strong> JPG, PNG or WebP. The limit is 8 MB, but <strong>aim for under 500 KB</strong>. Heavy images make pages slow, and slow pages lose readers and rank lower.</li>
+        <li><strong>Dimensions:</strong> cover image about <strong>1600 × 900 px</strong> (landscape); pictures inside the story about <strong>1200 px</strong> wide are plenty. Free tools to shrink pictures: <em>Squoosh</em> (squoosh.app) or <em>TinyPNG</em> (tinypng.com).</li>
+        <li><strong>Name the file first.</strong> Rename <code>IMG_4821.JPG</code> to <code>nandi-hills-sunrise-viewpoint.jpg</code> before uploading (lowercase, words joined with hyphens).</li>
+        <li><strong>Describe every picture.</strong> One natural sentence about what is in it. Do not start with "image of", and do not cram in keywords.</li>
+        <li><strong>iPhone photos:</strong> iPhones often save pictures as HEIC, which will not upload. Send or export the photo as a JPG first.</li>
+      </ul>
+
+      <h2 id="seo">5. The "Google and sharing" section</h2>
+      <p>This is where you control how the post looks in Google. As you type, a live preview shows the result, and a checklist shows what to improve. It is a guide, not a score to chase: ignore a tick that does not make sense for your post.</p>
+      <table>
+        <thead><tr><th>Field</th><th>How to fill it in</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Google title</strong></td><td>The blue headline. Aim for <strong>50–60 characters</strong> with the main keyword near the start. Example: <em>Nandi Hills Sunrise Points: Best Viewpoints &amp; Timings | Tandem</em>. Leave it empty to use the post title.</td></tr>
+          <tr><td><strong>Google description</strong></td><td>The grey text under it. <strong>110–155 characters</strong>: say what the post gives the reader and why to click. Use the keyword once.</td></tr>
+          <tr><td><strong>Web address ending</strong></td><td>The last part of the link. Short, lowercase, hyphens, with the keyword: <em>nandi-hills-sunrise-points</em>. It fills in from the title; trim it. <strong>Do not change it after publishing</strong>, because old links would break.</td></tr>
+          <tr><td><strong>Main keyword</strong></td><td>The phrase you chose in Part 2. Only the checklist uses it; visitors never see it.</td></tr>
+          <tr><td><strong>Hide from Google</strong></td><td>Tick only for posts that should not appear in search, for example a test post.</td></tr>
+        </tbody>
+      </table>
+      <p>The checklist looks at: title and description length, enough words, at least one heading, picture descriptions, links to other Tandem pages, and whether your keyword appears in the title, address, description and first paragraph.</p>
+
+      <h2 id="publish">6. Save, preview and publish</h2>
+      <ol>
+        <li>Leave <strong>Status</strong> on <strong>Draft</strong> while you work and click <strong>Save and continue editing</strong> often.</li>
+        <li>Under <strong>Publishing</strong>, click <strong>Open the post</strong>. It opens exactly as readers will see it, with a "Preview" note that only signed-in staff see. Check it <strong>on your phone</strong> too.</li>
+        <li>Proofread, then run the checklist in Part 8.</li>
+        <li>Change <strong>Status</strong> to <strong>Published</strong> and save. The post is live immediately.</li>
+        <li>To publish later, set a future <strong>Publish date and time</strong> with status Published. The post appears automatically at that time and shows as <em>Scheduled</em> until then.</li>
+      </ol>
+      <h3>After you publish</h3>
+      <ul>
+        <li>Open the live link in a private window to confirm it looks right.</li>
+        <li>Share it as an <strong>Update</strong> on the Tandem Google Business Profile, plus Instagram and WhatsApp.</li>
+        <li>Add a link to the new post from one or two older posts.</li>
+        <li>Ask the site owner to submit the link in Google Search Console ("Request indexing") so Google finds it sooner.</li>
+        <li><strong>Updating an old post?</strong> Edit it and save; keep the same web address. For time-sensitive posts, mention the month in the opening ("Updated October 2026").</li>
+      </ul>
+
+      <h2 id="rank">7. What helps a post rank on Google</h2>
+      <p>Nobody can promise a number-one spot, and a new site usually needs weeks or months to be noticed. These are the things that genuinely help:</p>
+      <ol>
+        <li><strong>Answer the question completely.</strong> Give the answer early, then add depth. Match what the searcher wants.</li>
+        <li><strong>Be the local expert.</strong> Google rewards real experience. Your own visits, photos, times and tips beat generic text that could be on any site.</li>
+        <li><strong>Be thorough without padding.</strong> Guides often do well at 1,000–1,800 words. Cover the follow-up questions people ask.</li>
+        <li><strong>Place the keyword naturally</strong>: title, web address, description, first paragraph and one heading. Never repeat it just to repeat it.</li>
+        <li><strong>Make it easy to scan</strong>: headings, short paragraphs and lists. Most visitors are on phones.</li>
+        <li><strong>Use original, compressed, described images.</strong></li>
+        <li><strong>Link well.</strong> Link to related Tandem posts, and to a trusted official source when you quote a fact.</li>
+        <li><strong>Keep it fresh and accurate.</strong> Update timings, seasons and rules. Wrong information costs trust, and trust is what ranks.</li>
+        <li><strong>Use local signals.</strong> Mention real landmarks and distances from Bengaluru. Keep the name, address and phone number the same everywhere, including the Google Business Profile.</li>
+        <li><strong>Be consistent.</strong> One or two good posts a week beats ten in one day. Build a cluster of posts around "Nandi Hills" that link to each other.</li>
+        <li><strong>Earn links.</strong> Share with travel bloggers, Instagram creators and local pages. Good posts get mentioned.</li>
+      </ol>
+      <p><strong>Avoid:</strong> copying text or pictures from other sites, stuffing keywords, publishing very short posts, buying links, guessing at facts, and changing a web address after publishing.</p>
+
+      <h2 id="checklist">8. Before-you-publish checklist</h2>
+      <ul class="check">
+        <li>The title is clear and includes the main keyword where it reads naturally.</li>
+        <li>The opening paragraph mentions the keyword and says what the reader will get.</li>
+        <li>There are headings, short paragraphs and, where useful, lists.</li>
+        <li>All timings, prices, distances and names are confirmed.</li>
+        <li>There is a cover image, and it has a description.</li>
+        <li>Every picture inside the story has a description, and each is under about 500 KB.</li>
+        <li>There is at least one link to another Tandem page, and links use natural words.</li>
+        <li>Google title (50–60), Google description (110–155) and web address are filled in.</li>
+        <li>The checklist panel is mostly green, and you know why any item is not.</li>
+        <li>You read it aloud and checked spelling.</li>
+        <li>You opened the preview on your phone.</li>
+        <li>No text or pictures were copied from elsewhere.</li>
+      </ul>
+
+      <h2 id="fixes">9. If something goes wrong</h2>
+      <table>
+        <thead><tr><th>Problem</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>I cannot sign in even with the right password</td><td>Your account may not have the Blogger role. Ask the site owner to set your role to <strong>Blogger</strong>.</td></tr>
+          <tr><td>An image will not upload</td><td>It is probably over 8 MB or the wrong type (for example an iPhone HEIC photo). Shrink it or save it as a JPG.</td></tr>
+          <tr><td>My post does not show on the site</td><td>Check <strong>Status</strong> is <em>Published</em> and the <strong>Publish date and time</strong> is not in the future. The State column should say <em>Live</em>.</td></tr>
+          <tr><td>The preview link shows "not found"</td><td>You must be signed in. Open it from the <strong>Open the post</strong> link while signed in.</td></tr>
+          <tr><td>I lost some text</td><td>Press Ctrl+Z (Cmd+Z on a Mac). Then use <strong>Save and continue editing</strong> regularly.</td></tr>
+          <tr><td>The checklist panel is missing</td><td>Refresh the page. If it is still missing, tell the site owner which browser you use.</td></tr>
+        </tbody>
+      </table>
+      <p>For anything else, message the site owner and say which post you were editing and what you saw on the screen.</p>
+    </div>
+  </div>
+
+  <div class="ar-foot">
+    <a class="ar-back" href="{% url 'write' %}">Back to my posts</a>
+  </div>
+</article>
+{% endblock %}

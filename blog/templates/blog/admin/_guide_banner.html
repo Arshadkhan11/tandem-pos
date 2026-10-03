@@ -1,0 +1,6 @@
+{% url 'writer_guide' as guide_url %}{% if guide_url %}
+<div class="writer-guide-banner" style="margin:0 0 16px;padding:12px 16px;border:1px solid var(--hairline-color,#ddd);border-left:4px solid #7b1e2b;border-radius:8px;background:var(--darkened-bg,#f8f8f8);font-size:14px">
+  New to writing here? <a href="{{ guide_url }}" target="_blank" rel="noopener"><strong>Open the Writer's guide</strong></a>
+  &mdash; step-by-step help with writing, images, Google tips and publishing.
+</div>
+{% endif %}

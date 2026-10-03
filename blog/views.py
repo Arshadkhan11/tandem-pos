@@ -1,6 +1,8 @@
+from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 
 from .models import Post
 
@@ -30,3 +32,10 @@ def post_detail(request, slug):
         "blog/post_detail.html",
         {"post": post, "related_posts": related, "is_preview": is_preview},
     )
+
+
+def writer_guide(request):
+    """Staff-only how-to for writers (sign-in required, kept out of Google)."""
+    if not (request.user.is_authenticated and request.user.has_perm("blog.view_post")):
+        return redirect_to_login(request.get_full_path(), reverse("admin:login"))
+    return render(request, "blog/writer_guide.html")

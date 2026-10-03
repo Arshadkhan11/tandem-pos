@@ -7,6 +7,7 @@ from .models import Post
 admin.site.site_header = "Tandem"
 admin.site.site_title = "Tandem"
 admin.site.index_title = "Welcome"
+admin.site.index_template = "blog/admin/index.html"
 
 
 @admin.register(Post)
@@ -17,6 +18,8 @@ class PostAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = ["public_link", "created_at", "updated_at"]
     save_on_top = True
+    change_list_template = "blog/admin/post_change_list.html"
+    change_form_template = "blog/admin/post_change_form.html"
     view_on_site = False
     fieldsets = (
         ("Write your story", {"fields": ("title", "body", "excerpt")}),

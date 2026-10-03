@@ -226,3 +226,30 @@ html:not(.motion) .chapter { margin-bottom: 3rem; }
 
 .ar-preview { pointer-events: none; position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 70; background: var(--ink); color: var(--bg); padding: 0.7rem 1.2rem; border-radius: 999px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 0.82rem; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); max-width: 92vw; text-align: center; }
 .ar-preview strong { color: #f0c987; }
+
+/* ---------- Writer's guide ---------- */
+.gd .callout { margin: 0 0 2rem; padding: 1.2rem 1.4rem; background: var(--bg-soft); border-left: 4px solid var(--burgundy); border-radius: 8px; font-size: 1.1rem; line-height: 1.6; }
+.gd .callout ol { margin: 0.6rem 0 0; padding-left: 1.4em; }
+.gd .callout li + li { margin-top: 0.3em; }
+.gd .toc { margin: 0 0 2.4rem; padding: 1.1rem 1.4rem; border: 1px solid var(--line); border-radius: 8px; font-size: 1.05rem; line-height: 1.5; }
+.gd .toc ol { margin: 0.6rem 0 0; padding-left: 1.4em; }
+.gd .toc li + li { margin-top: 0.2em; }
+.gd .toc a { text-decoration: none; }
+.gd .toc a:hover { text-decoration: underline; text-decoration-color: var(--burgundy); }
+.gd .ar-body h2 { scroll-margin-top: 6rem; }
+.gd code { padding: 0.1em 0.35em; border-radius: 4px; background: var(--bg-soft); font-size: 0.9em; }
+.gd ul.check { list-style: none; padding-left: 0; }
+.gd ul.check li { position: relative; padding-left: 1.9em; }
+.gd ul.check li::before { content: ""; position: absolute; left: 0; top: 0.42em; width: 1em; height: 1em; border: 2px solid var(--burgundy); border-radius: 3px; }
+.gd .ar-body table { font-size: 1.02rem; }
+.gd .ar-body td, .gd .ar-body th { vertical-align: top; }
+
+@media print {
+  .tm-nav, .tm-footer, .ar-progress, .tm-progress, .ar-back, .toc { display: none !important; }
+  body.tm { background: #fff; font-size: 11pt; }
+  .ar { padding-top: 0 !important; max-width: none; }
+  .ar-body { font-size: 11pt; line-height: 1.55; color: #000; }
+  .ar-title { font-size: 24pt; }
+  .gd .ar-body h2 { break-after: avoid; margin-top: 1.6em; }
+  .gd .ar-body table, .gd .callout { break-inside: avoid; }
+}
