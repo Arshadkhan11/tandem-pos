@@ -2,30 +2,10 @@
 {% load static %}
 {% block title %}Tandem — A Destination on Nandi Hills{% endblock %}
 
-{% block extra_head %}
-<link rel="stylesheet" href="{% static 'blog/tandem.css' %}">
-<script>
-  /* Enable the hidden-until-animated states only when motion is allowed.
-     tandem.js removes this class again if the animation libraries fail to load. */
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    document.documentElement.classList.add('motion');
-  }
-</script>
-{% endblock %}
-
-{% block body_class %}tm{% endblock %}
-
-{% block header %}
-<div class="tm-progress" aria-hidden="true"><i></i></div>
-<nav class="tm-nav" aria-label="Main">
-  <a href="{% url 'site_home' %}" aria-label="Tandem home"><img src="{% static 'logo-full.png' %}" alt="Tandem"></a>
-  <ul>
-    <li class="hide-sm"><a class="link" href="#story">Story</a></li>
-    <li class="hide-sm"><a class="link" href="#menu">Menu</a></li>
-    <li><a class="link" href="{% url 'post_list' %}">Journal</a></li>
-    <li class="hide-sm"><span class="tm-pill">Opening soon</span></li>
-  </ul>
-</nav>
+{% block nav_links %}
+<li class="hide-sm"><a class="link" href="#story">Story</a></li>
+<li class="hide-sm"><a class="link" href="#menu">Menu</a></li>
+<li><a class="link" href="{% url 'post_list' %}">Journal</a></li>
 {% endblock %}
 
 {% block content %}
@@ -35,7 +15,7 @@
   <div class="tm-grain"></div>
   <div class="tm-hero-inner">
     <p class="tm-label" data-hero>Nandi Hills · Bengaluru</p>
-    <img class="tm-hero-logo" data-hero src="{% static 'logo-full.png' %}" alt="Tandem">
+    <img class="tm-hero-logo" data-hero src="{% static 'logo-full-dark.png' %}" alt="Tandem" width="1255" height="320" fetchpriority="high">
     <h1 data-hero data-hero-words>More than a meal. A destination.</h1>
     <span class="tm-pill" data-hero>Opening soon</span>
   </div>
@@ -153,20 +133,4 @@
   <p style="text-align:center"><a class="tm-more tm-label" href="{% url 'post_list' %}">Read the Journal</a></p>
 </section>
 {% endif %}
-{% endblock %}
-
-{% block footer %}
-<footer class="tm-footer">
-  <img src="{% static 'logo-full.png' %}" alt="Tandem">
-  <p class="tm-label">Gather. Dine. Celebrate.</p>
-  <p>More than a meal. A destination.</p>
-  <p style="font-size:.9rem">Nandi Hills, Bengaluru</p>
-</footer>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
-<script src="{% static 'blog/tandem.js' %}"></script>
 {% endblock %}

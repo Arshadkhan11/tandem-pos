@@ -9,6 +9,7 @@
     return;
   }
 
+  root.classList.add('motion-ready');
   gsap.registerPlugin(ScrollTrigger);
   ScrollTrigger.config({ ignoreMobileResize: true });
 
@@ -67,30 +68,32 @@
     gsap.to(bar, { scaleY: 1, ease: 'none', scrollTrigger: { start: 0, end: 'max', scrub: 0.3 } });
   }
 
-  /* ---------- hero intro ---------- */
-  var heroLines = document.querySelectorAll('[data-hero-words]');
-  heroLines.forEach(function (el) {
-    var w = words(el);
-    gsap.set(w, { yPercent: 115 });
-    gsap.set(el, { opacity: 1 });
-    el._words = w;
-  });
-  var intro = gsap.timeline({ delay: 0.15 });
-  intro.fromTo('.tm-hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 1.8, ease: 'power3.out' }, 0);
-  heroLines.forEach(function (el) {
-    intro.to(el._words, { yPercent: 0, duration: 1.1, ease: 'power4.out', stagger: 0.08 }, 0.7);
-  });
-  document.querySelectorAll('[data-hero]:not([data-hero-words]):not(.tm-hero-logo)').forEach(function (el, i) {
-    if (el.hasAttribute('data-hero-o')) {
-      intro.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 1, ease: 'power2.out' }, 1.5);
-    } else {
-      intro.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }, 0.5 + i * 0.5);
-    }
-  });
-  gsap.to('.tm-hero-inner', {
-    yPercent: -10, opacity: 0, ease: 'none',
-    scrollTrigger: { trigger: '.tm-hero', start: 'top top', end: 'bottom top', scrub: true }
-  });
+  /* ---------- hero intro (home page only) ---------- */
+  if (document.querySelector('.tm-hero')) {
+    var heroLines = document.querySelectorAll('[data-hero-words]');
+    heroLines.forEach(function (el) {
+      var w = words(el);
+      gsap.set(w, { yPercent: 115 });
+      gsap.set(el, { opacity: 1 });
+      el._words = w;
+    });
+    var intro = gsap.timeline({ delay: 0.15 });
+    intro.fromTo('.tm-hero-logo', { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 1.8, ease: 'power3.out' }, 0);
+    heroLines.forEach(function (el) {
+      intro.to(el._words, { yPercent: 0, duration: 1.1, ease: 'power4.out', stagger: 0.08 }, 0.7);
+    });
+    document.querySelectorAll('[data-hero]:not([data-hero-words]):not(.tm-hero-logo)').forEach(function (el, i) {
+      if (el.hasAttribute('data-hero-o')) {
+        intro.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 1, ease: 'power2.out' }, 1.5);
+      } else {
+        intro.fromTo(el, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }, 0.5 + i * 0.5);
+      }
+    });
+    gsap.to('.tm-hero-inner', {
+      yPercent: -10, opacity: 0, ease: 'none',
+      scrollTrigger: { trigger: '.tm-hero', start: 'top top', end: 'bottom top', scrub: true }
+    });
+  }
 
   /* ---------- manifesto: words light up as you scroll ---------- */
   var manifesto = document.querySelector('.tm-manifesto .big');
@@ -197,6 +200,16 @@
       }
     });
   }
+
+  /* ---------- article pages: reading progress + a gentle slide on the heading ---------- */
+  var arBody = document.querySelector('.ar-body');
+  var arBar = document.querySelector('.ar-progress i');
+  if (arBody && arBar) {
+    gsap.to(arBar, { scaleX: 1, ease: 'none', scrollTrigger: { trigger: arBody, start: 'top 85%', end: 'bottom bottom', scrub: 0.2 } });
+  }
+  /* Position only, never opacity: the title stays visible from the first paint (good for load speed and SEO). */
+  var arHead = document.querySelectorAll('.ar-title, .ar-deck, .ar-by');
+  if (arHead.length) gsap.from(arHead, { y: 18, duration: 0.9, ease: 'power3.out', stagger: 0.08 });
 
   /* layout can shift once web fonts arrive */
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { ScrollTrigger.refresh(); });

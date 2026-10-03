@@ -1,56 +1,62 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}Tandem — Nandi Hills{% endblock %}</title>
 <meta name="description" content="{% block meta_description %}Tandem — a restaurant and destination on Nandi Hills, Bengaluru. Gather. Dine. Celebrate.{% endblock %}">
-<script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+<meta name="theme-color" content="#FBF8F2">
+<link rel="canonical" href="{% block canonical %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
 <style>
-  @font-face {
-    font-family: 'Cinzel';
-    src: url("{% static 'fonts/Cinzel-Regular.ttf' %}") format('truetype');
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'EB Garamond';
-    src: url("{% static 'fonts/EBGaramond-Regular.ttf' %}") format('truetype');
-    font-weight: 400;
-    font-display: swap;
-  }
-  .font-brand { font-family: 'Cinzel', serif; }
-  .font-serif-brand { font-family: 'EB Garamond', Georgia, serif; }
-  .prose :where(h2,h3){ font-family: 'Cinzel', serif; }
-  .prose { font-family: 'EB Garamond', Georgia, serif; font-size: 1.2rem; line-height: 1.75; }
+  @font-face { font-family: 'Cinzel'; src: url("{% static 'fonts/Cinzel-Regular.ttf' %}") format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'EB Garamond'; src: url("{% static 'fonts/EBGaramond-Regular.ttf' %}") format('truetype'); font-weight: 400; font-display: swap; }
 </style>
+<link rel="stylesheet" href="{% static 'blog/tandem.css' %}">
+<script>
+  /* Hidden-until-animated states apply only when motion is allowed.
+     tandem.js removes this class again if the animation libraries fail to load. */
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    document.documentElement.classList.add('motion');
+  }
+</script>
 {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}bg-[#FBF7EF] text-stone-900{% endblock %} min-h-screen flex flex-col">
+<body class="tm">
   {% block header %}
-  <header class="bg-[#2E2419] text-[#EBD2A1] px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow">
-    <a href="{% url 'site_home' %}" class="flex items-center" aria-label="Tandem">
-      <img src="{% static 'logo-mark.png' %}" alt="Tandem" class="h-9 w-auto object-contain">
-    </a>
-    <nav class="flex items-center gap-5 text-sm">
-      <a href="{% url 'site_home' %}" class="hover:underline">Home</a>
-      <a href="{% url 'post_list' %}" class="hover:underline">Blog</a>
-    </nav>
-  </header>
+  {% block progress %}<div class="tm-progress" aria-hidden="true"><i></i></div>{% endblock %}
+  <nav class="tm-nav" aria-label="Main">
+    <a href="{% url 'site_home' %}" aria-label="Tandem home"><img src="{% static 'logo-full-dark.png' %}" alt="Tandem" width="94" height="24"></a>
+    <ul>
+      {% block nav_links %}
+      <li><a class="link" href="{% url 'site_home' %}">Home</a></li>
+      <li><a class="link" href="{% url 'post_list' %}">Journal</a></li>
+      {% endblock %}
+      <li class="hide-sm"><span class="tm-pill">Opening soon</span></li>
+    </ul>
+  </nav>
   {% endblock %}
-  <main class="flex-1 w-full">
+
+  <main id="main">
     {% block content %}{% endblock %}
   </main>
+
   {% block footer %}
-  <footer class="mt-auto bg-[#2E2419] text-[#EBD2A1] border-t border-[#EBD2A1]/30">
-    <div class="max-w-3xl mx-auto px-3 py-3 flex flex-col items-center gap-1 text-center leading-tight">
-      <span class="font-brand text-[11px] tracking-[0.22em] uppercase">Gather. Dine. Celebrate.</span>
-      <span class="font-serif-brand text-[12px] italic text-[#F5E8C8]">More than a meal. A destination.</span>
-      <span class="font-serif-brand text-[10px] text-[#EBD2A1]/70 tracking-wide">Nandi Hills, Bengaluru</span>
+  <footer class="tm-footer">
+    <img src="{% static 'logo-full-dark.png' %}" alt="Tandem" width="260" height="66">
+    <p class="tm-label">Gather. Dine. Celebrate.</p>
+    <div class="links">
+      <a class="tm-label" href="{% url 'site_home' %}">Home</a>
+      <a class="tm-label" href="{% url 'post_list' %}">Journal</a>
     </div>
+    <p>More than a meal. A destination.</p>
+    <p style="font-size:.9rem">Nandi Hills, Bengaluru</p>
   </footer>
   {% endblock %}
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1/dist/lenis.min.js"></script>
+  <script src="{% static 'blog/tandem.js' %}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
