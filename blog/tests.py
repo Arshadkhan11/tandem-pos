@@ -258,3 +258,87 @@ class WritersDeskTests(TestCase):
         media = PostAdmin.Media
         for path in list(media.js) + list(media.css["all"]):
             self.assertIsNotNone(finders.find(path), path)
+
+
+@override_settings(**TEST_SETTINGS)
+class WriterGuideTests(TestCase):
+    def setUp(self):
+        from orders.admin import StaffUserAdmin
+        from orders.models import StaffProfile
+
+        self.owner = User.objects.create_superuser("owner2", "o2@example.com", "pw12345")
+        self.writer = User.objects.create_user("writer2", password="pw12345")
+        StaffProfile.objects.create(user=self.writer, role="blogger", display_name="Asha")
+        StaffUserAdmin._sync_django_admin_flags(self.writer)
+        self.waiter = User.objects.create_user("waiter2", password="pw12345")
+        StaffProfile.objects.create(user=self.waiter, role="waiter", display_name="Wally")
+        StaffUserAdmin._sync_django_admin_flags(self.waiter)
+
+    def client_for(self, user):
+        c = Client()
+        c.force_login(user)
+        return c
+
+    def test_guide_needs_sign_in(self):
+        r = Client().get(reverse("writer_guide"))
+        self.assertEqual(r.status_code, 302)
+        self.assertIn(reverse("admin:login"), r["Location"])
+
+    def test_waiters_cannot_open_the_guide(self):
+        r = self.client_for(self.waiter).get(reverse("writer_guide"))
+        self.assertEqual(r.status_code, 302)
+
+    def test_blogger_and_owner_can_read_it_and_it_stays_out_of_google(self):
+        for user in (self.writer, self.owner):
+            r = self.client_for(user).get(reverse("writer_guide"))
+            self.assertEqual(r.status_code, 200)
+            self.assertContains(r, "The Tandem Writer")
+            self.assertContains(r, "Add images")
+            self.assertContains(r, "What helps a post rank on Google")
+            self.assertContains(r, 'content="noindex, nofollow"')
+
+    def test_guide_is_linked_from_the_writers_admin_screens(self):
+        c = self.client_for(self.writer)
+        for url in (reverse("admin:index"), reverse("admin:blog_post_changelist"), reverse("admin:blog_post_add")):
+            self.assertContains(c.get(url), 'href="/write/guide/"', msg_prefix=url)
+
+    @override_settings(ROOT_URLCONF="tandem.urls")
+    def test_admin_still_works_on_the_staff_app_domain_without_the_guide_link(self):
+        r = self.client_for(self.owner).get(reverse("admin:blog_post_changelist"))
+        self.assertEqual(r.status_code, 200)
+        self.assertNotContains(r, "Writer's guide")
+
+    def test_guide_contents_links_point_at_real_sections(self):
+        import re
+        html = self.client_for(self.owner).get(reverse("writer_guide")).content.decode()
+        targets = set(re.findall(r'href="#([a-z]+)"', html))
+        ids = set(re.findall(r'id="([a-z]+)"', html))
+        self.assertTrue(targets)
+        self.assertEqual(targets - ids, set())
+
+    def test_guide_html_has_no_unclosed_or_mismatched_tags(self):
+        from html.parser import HTMLParser
+
+        void = {"br", "hr", "img", "meta", "link", "input", "source", "col", "area", "base", "embed", "param", "track", "wbr"}
+
+        class Balance(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.stack, self.errors = [], []
+
+            def handle_starttag(self, tag, attrs):
+                if tag not in void:
+                    self.stack.append(tag)
+
+            def handle_endtag(self, tag):
+                if tag in void:
+                    return
+                if not self.stack or self.stack[-1] != tag:
+                    self.errors.append("unexpected </%s> after %s" % (tag, self.stack[-3:]))
+                else:
+                    self.stack.pop()
+
+        p = Balance()
+        p.feed(self.client_for(self.owner).get(reverse("writer_guide")).content.decode())
+        self.assertEqual(p.errors, [])
+        self.assertEqual(p.stack, [])
