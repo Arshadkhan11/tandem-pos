@@ -192,7 +192,12 @@ MAILERS = {
 }
 
 # Blog post editor (django-ckeditor-5) — a clean, Medium-style writing toolbar.
-CKEDITOR_5_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+CKEDITOR_5_FILE_STORAGE = "blog.storage.InlineImageStorage"
+CKEDITOR_5_MAX_FILE_SIZE = 8  # MB per image, keeps pages fast
+
+# Uploaded files must be readable by the web server (Caddy runs as a different user).
+FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o755
 CKEDITOR_5_CONFIGS = {
     "default": {
         "toolbar": [

@@ -1,9 +1,11 @@
 {% extends "blog/base_site.html" %}
-{% block title %}{{ post.title }} — Tandem Journal{% endblock %}
-{% block meta_description %}{{ post.meta_description|default:post.excerpt }}{% endblock %}
+{% block title %}{% if post.seo_title %}{{ post.seo_title }}{% else %}{{ post.title }} — Tandem Journal{% endif %}{% endblock %}
+{% block meta_description %}{{ post.description }}{% endblock %}
+{% block extra_head %}{% if is_preview or post.noindex %}<meta name="robots" content="noindex{% if is_preview %}, nofollow{% endif %}">{% endif %}{% endblock %}
 {% block progress %}<div class="ar-progress" aria-hidden="true"><i></i></div>{% endblock %}
 {% block content %}
 {% firstof post.author.staff.display_name post.author.get_full_name post.author.username "Tandem" as author_name %}
+{% if is_preview %}<div class="ar-preview">Preview &middot; this post is <strong>{{ post.state|lower }}</strong>. Only signed-in staff can see this page.</div>{% endif %}
 <article>
   <header class="ar" style="padding-bottom:0">
     <h1 class="ar-title">{{ post.title }}</h1>
@@ -12,13 +14,13 @@
       <span class="av" aria-hidden="true">{{ author_name|first|upper }}</span>
       <div>
         <div class="who">{{ author_name }}</div>
-        <div class="sub"><time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"F j, Y" }}</time> · {{ post.reading_time_minutes }} min read</div>
+        <div class="sub">{% if post.published_at %}<time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"F j, Y" }}</time> · {% endif %}{{ post.reading_time_minutes }} min read</div>
       </div>
     </div>
   </header>
 
   {% if post.cover_image %}
-  <figure class="ar-cover"><img src="{{ post.cover_image.url }}" alt="{{ post.title }}" width="1000" height="560"></figure>
+  <figure class="ar-cover"><img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt|default:post.title }}" width="1000" height="560"></figure>
   {% endif %}
 
   <div class="ar" style="padding-top:0;padding-bottom:0">

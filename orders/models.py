@@ -8,10 +8,12 @@ class StaffProfile(models.Model):
     ROLE_WAITER = "waiter"
     ROLE_CHEF = "chef"
     ROLE_ADMIN = "admin"
+    ROLE_BLOGGER = "blogger"
     ROLE_CHOICES = [
         (ROLE_WAITER, "Waiter"),
         (ROLE_CHEF, "Chef"),
         (ROLE_ADMIN, "Admin"),
+        (ROLE_BLOGGER, "Blogger"),
     ]
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="staff")

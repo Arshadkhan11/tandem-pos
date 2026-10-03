@@ -223,3 +223,6 @@ html:not(.motion) .chapter { margin-bottom: 3rem; }
 .ar-more { background: var(--bg-soft); border-top: 1px solid var(--line); padding: 4rem 1.4rem 5rem; }
 .ar-more .in { max-width: 720px; margin: 0 auto; }
 .ar-back { display: inline-block; margin-top: 2rem; font-family: var(--display); font-size: 0.7rem; letter-spacing: 0.26em; text-transform: uppercase; padding-bottom: 3px; border-bottom: 1px solid var(--burgundy); }
+
+.ar-preview { pointer-events: none; position: fixed; left: 50%; bottom: 1rem; transform: translateX(-50%); z-index: 70; background: var(--ink); color: var(--bg); padding: 0.7rem 1.2rem; border-radius: 999px; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 0.82rem; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); max-width: 92vw; text-align: center; }
+.ar-preview strong { color: #f0c987; }
