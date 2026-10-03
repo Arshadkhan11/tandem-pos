@@ -1,40 +1,55 @@
 {% extends "blog/base_site.html" %}
-{% block title %}{{ post.title }} — Tandem Blog{% endblock %}
-{% block meta_description %}{{ post.meta_description|default:post.excerpt }}{% endblock %}
+{% block title %}{% if post.seo_title %}{{ post.seo_title }}{% else %}{{ post.title }} — Tandem Journal{% endif %}{% endblock %}
+{% block meta_description %}{{ post.description }}{% endblock %}
+{% block extra_head %}{% if is_preview or post.noindex %}<meta name="robots" content="noindex{% if is_preview %}, nofollow{% endif %}">{% endif %}{% endblock %}
+{% block progress %}<div class="ar-progress" aria-hidden="true"><i></i></div>{% endblock %}
 {% block content %}
+{% firstof post.author.staff.display_name post.author.get_full_name post.author.username "Tandem" as author_name %}
+{% if is_preview %}<div class="ar-preview">Preview &middot; this post is <strong>{{ post.state|lower }}</strong>. Only signed-in staff can see this page.</div>{% endif %}
 <article>
+  <header class="ar" style="padding-bottom:0">
+    <h1 class="ar-title">{{ post.title }}</h1>
+    {% if post.excerpt %}<p class="ar-deck">{{ post.excerpt }}</p>{% endif %}
+    <div class="ar-by">
+      <span class="av" aria-hidden="true">{{ author_name|first|upper }}</span>
+      <div>
+        <div class="who">{{ author_name }}</div>
+        <div class="sub">{% if post.published_at %}<time datetime="{{ post.published_at|date:'Y-m-d' }}">{{ post.published_at|date:"F j, Y" }}</time> · {% endif %}{{ post.reading_time_minutes }} min read</div>
+      </div>
+    </div>
+  </header>
+
   {% if post.cover_image %}
-  <img src="{{ post.cover_image.url }}" alt="{{ post.title }}"
-       class="w-full max-h-[420px] object-cover">
+  <figure class="ar-cover"><img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt|default:post.title }}" width="1000" height="560"></figure>
   {% endif %}
 
-  <div class="max-w-2xl mx-auto px-4 py-10">
-    <h1 class="font-brand text-3xl sm:text-4xl leading-tight text-stone-900 mb-4">{{ post.title }}</h1>
-    <p class="text-stone-500 text-sm mb-8">
-      {% if post.author %}{{ post.author.get_full_name|default:post.author.username }} · {% endif %}
-      {{ post.published_at|date:"F j, Y" }} · {{ post.reading_time_minutes }} min read
-    </p>
+  <div class="ar" style="padding-top:0;padding-bottom:0">
+    <div class="ar-body">{{ post.body|safe }}</div>
+  </div>
 
-    <div class="prose prose-stone max-w-none prose-img:rounded-xl prose-a:text-[#2E2419]">
-      {{ post.body|safe }}
+  <div class="ar-foot">
+    <div class="ar-end">
+      <span class="av" aria-hidden="true">{{ author_name|first|upper }}</span>
+      <div>Written by <strong>{{ author_name }}</strong><br>for the Tandem Journal, Nandi Hills.</div>
     </div>
+    <a class="ar-back" href="{% url 'post_list' %}">Back to the Journal</a>
   </div>
 </article>
 
 {% if related_posts %}
-<section class="bg-[#F0E6D2] border-t border-[#E5D8BD]">
-  <div class="max-w-5xl mx-auto px-4 py-12">
-    <h2 class="font-brand text-sm tracking-[0.2em] uppercase text-stone-500 mb-6 text-center">More to read</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-      {% for rp in related_posts %}
-      <a href="{{ rp.get_absolute_url }}" class="block group">
-        {% if rp.cover_image %}
-        <img src="{{ rp.cover_image.url }}" alt="{{ rp.title }}" class="w-full h-32 object-cover rounded-xl mb-2">
-        {% endif %}
-        <h3 class="font-serif-brand text-base font-medium group-hover:underline">{{ rp.title }}</h3>
-      </a>
-      {% endfor %}
-    </div>
+<section class="ar-more">
+  <div class="in">
+    <p class="tm-label">Keep reading</p>
+    {% for rp in related_posts %}
+    <a class="bl-row{% if rp.cover_image %} has-thumb{% endif %}" href="{{ rp.get_absolute_url }}">
+      <div>
+        <h2>{{ rp.title }}</h2>
+        {% if rp.excerpt %}<p class="ex">{{ rp.excerpt }}</p>{% endif %}
+        <p class="bl-meta">{{ rp.published_at|date:"M j, Y" }}<span class="dot">·</span>{{ rp.reading_time_minutes }} min read</p>
+      </div>
+      {% if rp.cover_image %}<img class="bl-thumb" src="{{ rp.cover_image.url }}" alt="" loading="lazy" width="124" height="124">{% endif %}
+    </a>
+    {% endfor %}
   </div>
 </section>
 {% endif %}

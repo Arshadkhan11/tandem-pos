@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group, Permission, User
 from django.utils.translation import gettext_lazy as _
 
 from .models import StaffProfile, Table, MenuItem, Order, OrderItem, RestaurantSettings
@@ -19,13 +19,14 @@ class StaffUserCreationForm(UserCreationForm):
         label="Tandem role",
         help_text=(
             "Waiter / Chef → app login only. "
-            "Admin → app login + Django admin (/django-admin/)."
+            "Admin → app login + full Django admin. "
+            "Blogger → can only write blog posts (tandemretreat.com/write), nothing else."
         ),
     )
     display_name = forms.CharField(
         max_length=50,
         label="Display name",
-        help_text="Shown on the floor (tickets, locks, kitchen).",
+        help_text="Shown on the floor (tickets, locks, kitchen) and as the author name on blog posts.",
     )
 
     class Meta(UserCreationForm.Meta):
@@ -64,7 +65,7 @@ class StaffUserAdmin(DjangoUserAdmin):
                 "description": (
                     "Uncheck Active to offboard (blocks login; keeps history). "
                     "Staff status / superuser are set automatically from Tandem role: "
-                    "only Admin gets /django-admin/ access. "
+                    "Admin gets full /django-admin/ access; Blogger gets blog posts only. "
                     "Waiters and chefs log in at /login/waiter/ and /login/chef/ — "
                     "they do not need Staff status."
                 ),
@@ -87,7 +88,7 @@ class StaffUserAdmin(DjangoUserAdmin):
                 "description": (
                     "Create the account and Tandem role in one step. "
                     "Choose Admin only if they should manage users/settings "
-                    "in Django admin."
+                    "in Django admin. Choose Blogger for someone who only writes blog posts."
                 ),
             },
         ),
@@ -130,16 +131,28 @@ class StaffUserAdmin(DjangoUserAdmin):
 
     @staticmethod
     def _sync_django_admin_flags(user):
-        """Only Tandem Admin role may use /django-admin/."""
+        """Admin role = full Django admin. Blogger role = staff login with blog permissions only.
+        Everyone else gets no admin access. Flags are derived from the role, never set by hand."""
         try:
             profile = user.staff
         except StaffProfile.DoesNotExist:
             return
         is_admin = profile.role == StaffProfile.ROLE_ADMIN
-        if user.is_staff != is_admin or user.is_superuser != is_admin:
-            user.is_staff = is_admin
+        is_blogger = profile.role == StaffProfile.ROLE_BLOGGER
+        want_staff = is_admin or is_blogger
+        if user.is_staff != want_staff or user.is_superuser != is_admin:
+            user.is_staff = want_staff
             user.is_superuser = is_admin
             user.save(update_fields=["is_staff", "is_superuser"])
+
+        # Writers may add/edit/view blog content, never delete it (they can unpublish instead).
+        blog_perms = Permission.objects.filter(content_type__app_label="blog").exclude(
+            codename__startswith="delete_"
+        )
+        if is_blogger:
+            user.user_permissions.set(blog_perms)
+        elif not is_admin:
+            user.user_permissions.remove(*blog_perms)
 
 
 # Replace the default User admin so role + display name are set where

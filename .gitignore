@@ -28,3 +28,10 @@ staticfiles/
 
 media/
 backups/
+
+# Secrets and runtime folders created on the server
+.env.*
+!.env.example
+.cache/
+.ssh/
+.gunicorn/
