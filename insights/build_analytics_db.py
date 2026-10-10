@@ -20,18 +20,24 @@ import sys
 from pathlib import Path
 
 CATEGORY_LABELS = {
-    "tea_coffee": "Tea & Coffee",
-    "maggi": "Maggi",
-    "breakfast": "Sandwiches & Breakfast",
-    "starters_veg": "Starters — Veg",
-    "starters_nonveg": "Starters — Non-Veg",
-    "fries": "Fries & Wedges",
+    "soups": "Soups",
+    "starters_veg": "Veg Starters",
+    "starters_nonveg": "Non-Veg Starters",
+    "wok_chicken": "Wok-Tossed Chicken",
+    "fries": "Fries & Potato Wedges",
+    "breakfast": "Sandwiches",
+    "maggi": "Maggi & Quick Bites",
+    "curries_veg": "Veg Curries",
+    "curries_nonveg": "Non-Veg Curries",
+    "roti_paratha": "Roti & Paratha",
+    "rice_comfort": "Rice & Comfort Meals",
     "rice_veg": "Rice, Noodles & Pasta — Veg",
     "rice_nonveg": "Rice, Noodles & Pasta — Non-Veg",
-    "beverages": "Refreshers & Soft Drinks",
+    "tea_coffee": "Tea & Coffee",
+    "beverages": "Soft Drinks",
+    "milkshakes": "Milkshakes",
     "ice_signature": "Ice Creams — Signature",
     "ice_classic": "Ice Creams — Classic",
-    "milkshakes": "Milkshakes",
 }
 
 # Django stores UTC; the restaurant runs on IST (UTC+5:30).

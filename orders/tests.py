@@ -634,8 +634,11 @@ class SeedMenuAndCategoryGroupingTests(TestCase):
         active = MenuItem.objects.filter(is_active=True)
         self.assertEqual(active.count(), 77)
         keys = set(active.values_list("category", flat=True))
-        expected_keys = {c for c, _ in MenuItem.CATEGORY_CHOICES}
-        self.assertEqual(keys, expected_keys)
+        # seed_menu is the original 77-item menu; sections added later (soups, curries,
+        # rotis…) are filled by `update_menu`, so only a subset is used here.
+        all_keys = {c for c, _ in MenuItem.CATEGORY_CHOICES}
+        added_by_update_menu = {"soups", "wok_chicken", "curries_veg", "curries_nonveg", "roti_paratha", "rice_comfort"}
+        self.assertEqual(keys, all_keys - added_by_update_menu)
         # No legacy placeholder slugs
         legacy = {
             "indian", "continental", "chinese", "bbq_grill", "seafood", "dessert",
@@ -658,7 +661,8 @@ class SeedMenuAndCategoryGroupingTests(TestCase):
         r = c.get(reverse("waiter_order", args=[self.table.id]))
         self.assertEqual(r.status_code, 200)
         by_cat = r.context["items_by_category"]
-        expected_labels = [label for _, label in MenuItem.CATEGORY_CHOICES]
+        used = set(MenuItem.objects.filter(is_active=True).values_list("category", flat=True))
+        expected_labels = [label for key, label in MenuItem.CATEGORY_CHOICES if key in used]
         self.assertEqual(list(by_cat.keys()), expected_labels)
         self.assertEqual(len(by_cat), 12)
         self.assertEqual(sum(len(v) for v in by_cat.values()), 77)
@@ -892,7 +896,7 @@ class CategoryRevenueChartTests(TestCase):
         self.admin = _make_admin("chart_admin")
         self.waiter = _make_waiter("chart_waiter")
         self.table = Table.objects.create(number=11)
-        # One closed sale in each of the 10 new categories
+        # One closed sale in each category
         now = timezone.now()
         for i, (slug, _label) in enumerate(MenuItem.CATEGORY_CHOICES):
             item = MenuItem.objects.create(
@@ -909,7 +913,7 @@ class CategoryRevenueChartTests(TestCase):
             )
             OrderItem.objects.create(order=order, menu_item=item, quantity=1)
 
-    def test_dashboard_category_chart_uses_all_ten_new_labels(self):
+    def test_dashboard_category_chart_uses_every_current_label(self):
         c = Client()
         c.force_login(self.admin)
         r = c.get(reverse("admin_summary") + "?range=all")
@@ -917,13 +921,15 @@ class CategoryRevenueChartTests(TestCase):
         labels = r.context["chart_payload"]["categories"]["labels"]
         expected = [label for _, label in MenuItem.CATEGORY_CHOICES]
         self.assertEqual(set(labels), set(expected))
-        self.assertEqual(len(labels), 12)
+        self.assertEqual(len(labels), len(MenuItem.CATEGORY_CHOICES))
         legacy_labels = {
             "Indian", "Continental", "Chinese", "BBQ & Grill",
             "Seafood", "Desserts", "Beverages", "Rice, Noodles & Pasta", "Ice Creams",
         }
         self.assertFalse(set(labels) & legacy_labels)
-        self.assertEqual(len(r.context["chart_payload"]["categories"]["values"]), 12)
+        self.assertEqual(
+            len(r.context["chart_payload"]["categories"]["values"]), len(MenuItem.CATEGORY_CHOICES)
+        )
 
 
 @override_settings(**TEST_SETTINGS)
